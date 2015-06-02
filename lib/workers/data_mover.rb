@@ -55,8 +55,8 @@ module Transferatu
 
     # Cancel a transfer
     def cancel
-      @source.cancel
-      @sink.cancel
+      @source.cancel if @source
+      @sink.cancel if @sink
     end
 
     # Run a transfer by moving data from Source to Sink. Return true
