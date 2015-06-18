@@ -21,10 +21,10 @@ module Clockwork
               :"sample#active_xfer_count" => active_xfer_count)
   end
 
-  every(15.minutes, "run-scheduled-transfers") do
-    # This only really needs to run once an hour, but no harm comes
-    # from running it more frequently, so let's try several times an
-    # hour to avoid problems
+  every(5.minutes, "run-scheduled-transfers") do
+    # This schedules 250 backups each time it is run, but no harm comes from
+    # from running it more frequently, and we have over 2000 scheduled backups
+    # for some hours, so 5 minutes means at minimum 3000 jobs will be processed
     #
     # N.B.: If this becomes too heavyweight, we may want to pull it
     # out into its own Procfile entry instead of using Clockwork
