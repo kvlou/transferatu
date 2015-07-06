@@ -75,6 +75,14 @@ module Transferatu::Endpoints
 
       post "/:id/actions/public-url" do
         transfer = find_transfer(@group, params[:id])
+
+        unless transfer.to_type == 'gof3r'
+          raise Pliny::Errors::BadRequest, "Not a backup "
+        end
+        unless transfer.succeeded?
+          raise Pliny::Errors::BadRequest, "Backup not available"
+        end
+
         ttl = if data.has_key? 'ttl'
                 data["ttl"].to_i
               else

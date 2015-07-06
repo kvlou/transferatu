@@ -129,16 +129,28 @@ module Transferatu::Endpoints
       let(:pub_url) { "https://example.com/my-transfer?secret=foo" }
 
       before do
-        xfer.complete
         allow(Transferatu::Mediators::Transfers::PublicUrlor)
           .to receive(:run).with(ttl: ttl, transfer: xfer).and_return(pub_url)
         header "Content-Type", "application/json"
       end
 
       it "creates a public url for a to-gof3r transfer" do
+        xfer.update(succeeded: true, finished_at: Time.now, to_type: 'gof3r')
         post "/groups/#{@group.name}/transfers/#{xfer.uuid}/actions/public-url",
           JSON.generate(ttl: ttl)
         expect(last_response.status).to eq(201)
+      end
+      it "does not create a public url for a to-gof3r transfer" do
+        xfer.update(succeeded: true, finished_at: Time.now, to_type: 'pg_restore')
+        post "/groups/#{@group.name}/transfers/#{xfer.uuid}/actions/public-url",
+          JSON.generate(ttl: ttl)
+        expect(last_response.status).to eq(400)
+      end
+      it "does not create a public url for an unfinished/incomplete transfer" do
+        xfer.update(succeeded: false, finished_at: nil, to_type: 'gof3r')
+        post "/groups/#{@group.name}/transfers/#{xfer.uuid}/actions/public-url",
+          JSON.generate(ttl: ttl)
+        expect(last_response.status).to eq(400)
       end
     end
 
