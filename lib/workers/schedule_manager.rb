@@ -6,7 +6,7 @@ module Transferatu
 
     def run_schedules(schedule_time, batch_size)
       schedules = Schedule.pending_for(schedule_time, limit: batch_size).all
-      Parallel.each(schedules, in_threads: 4) do |s|
+      Parallel.each(schedules, in_threads: 8) do |s|
         process_schedule(s)
       end
     end
