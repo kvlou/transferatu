@@ -17,9 +17,7 @@ module Transferatu
       self.with_sql(<<-EOF, time: time, limit: limit)
 WITH pending AS (
   SELECT
-    -- Take the current time, convert it into the schedule's timezone to get the local hour
-    -- (Local_Hour - Scheduled_hour) + 48 mod 24 to get how many hours ago it was.
-    s.*, mod(extract(hour from (:time at time zone timezone)::timestamptz)::smallint-hour+48, 24) as due_hours_ago
+    s.*
   FROM
     schedules s
   WHERE
@@ -29,8 +27,10 @@ WITH pending AS (
     ) AND s.deleted_at IS NULL
 )
 SELECT pending.* FROM pending
-WHERE due_hours_ago < 12
-ORDER BY due_hours_ago DESC, last_scheduled_at nulls first
+  -- Take the current time, convert it into the schedule's timezone to get the local hour
+  -- (Local_Hour - Scheduled_hour) + 48 mod 24 to get how many hours ago it was.
+WHERE mod(extract(hour from (:time at time zone timezone)::timestamptz)::smallint-hour+48, 24) < 12
+ORDER BY mod(extract(hour from (:time at time zone timezone)::timestamptz)::smallint-hour+48, 24) DESC, last_scheduled_at nulls first
 LIMIT
   :limit
 EOF
