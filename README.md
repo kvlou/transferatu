@@ -85,6 +85,12 @@ $ heroku run bundle exec rake db:migrate
 $ heroku ps:scale clock=1 scheduler=1
 ```
 
+You'll have to create a user for Shogun to use when talking to Transferatu:
+```console
+$ heroku run bundle exec rake 'users:create[heroku-postgres-<your-name>]'
+```
+You'll then set the environment variables on your staging shogun.
+
 
 ## Quiescence
 
