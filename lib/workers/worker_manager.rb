@@ -12,7 +12,10 @@ module Transferatu
     def check_workers
       return if AppStatus.quiesced?
       existing_workers = running_workers
-      existing_statuses = WorkerStatus.check(*existing_workers.map { |w| w['name'] }).all
+
+      active_workers = existing_workers.select { |w| w['state'] == 'up' }
+      
+      existing_statuses = WorkerStatus.check(*active_workers.map { |w| w['name'] }).all
 
       # for each worker, make sure that it's "making progress"; ensure:
       #  - the worker was updated or created recently
