@@ -15,7 +15,7 @@ module Transferatu
       if uuid.nil?
         # Dyno hostnames in private spaces have prefix "dyno-"
         self.uuid = Socket.gethostname
-        self.uuid.slice! "dyno-" if uuid.start_with? "dyno-"
+        self.uuid.slice!("dyno-") if uuid.start_with?("dyno-")
       end
       if host.nil?
         self.host = File.readlines('/etc/hosts').find do |line|
