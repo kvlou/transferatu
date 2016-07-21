@@ -91,6 +91,18 @@ $ heroku run bundle exec rake 'users:create[heroku-postgres-<your-name>]'
 ```
 You'll then set the environment variables on your staging shogun.
 
+## Production
+
+In production the tranferatu app should be marked as `paranoid`, so you'll have
+to allow the OAuth keys to skip 2fa authorization.
+
+1. Create new OAuth Client: `heroku sudo clients:create transferatu "https://transferatu.herokai.com"`
+1. Allow client to skip paranoid check: `heroku sudo clients:admin <OAUTH_CLIENT_ID> --can-skip-paranoid-check true`
+1. Update OAuth authorization created previously to use the newly *trusted* OAuth client:
+    
+    ```
+    heroku sudo authorizations:update --client-id <OAUTH_CLIENT_ID> --client-secret <OAUTH_CLIENT_SECRET> <OAUTH_AUTHORIZATION_ID>`
+    ```
 
 ## Quiescence
 
