@@ -18,9 +18,7 @@ namespace :users do
                              password: password,
                              callback_password: callback_password)
     puts <<-EOF
-Created user #{args.name} with
-  password: #{password}
-  callback password: #{callback_password}
+#{args.name}\t#{password}\t#{callback_password}
 EOF
   end
 end

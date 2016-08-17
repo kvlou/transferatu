@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+set -uex
+
+DEPLOY=${1?Usage: `basename $0` postfix}
+
+transferatu="transferatu-$DEPLOY"
+
+heroku create -o dod --space dod-staging $transferatu
+heroku addons:add heroku-postgresql:private-0 -a $transferatu
+
+HEROKU_API_TOKEN=`heroku authorizations:create --description $transferatu --scope write-protected --short | tr -d '\n'`
+heroku config:set HEROKU_API_TOKEN=$HEROKU_API_TOKEN -a $transferatu
+heroku config:set HEROKU_APP_NAME=$transferatu -a $transferatu
+heroku config:set S3_BUCKET_NAME=$S3_BUCKET_NAME AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY -a $transferatu
+heroku config:set AT_REST_FERNET_SECRET=`dd if=/dev/urandom bs=32 count=1 2>/dev/null | openssl base64` -a $transferatu
+
+git push heroku HEAD:master
+
+heroku pipelines:add transferatu -s development -a $transferatu
+heroku domains:add $transferatu.herokai.com -a $transferatu
+
+heroku pg:wait -a $transferatu
+heroku run bundle exec rake db:migrate -a $transferatu
+heroku ps:scale clock=1 scheduler=1 -a $transferatu
+
+CREDENTIALS=`heroku run bundle exec rake "users:create[heroku-postgres-$DEPLOY]" -a $transferatu`
+read USERNAME PASSWORD CALLBACK <<< "$CREDENTIALS"
+
+heroku config:set TRANSFERATU_URL=https://$transferatu.herokai.com -a shogun-$DEPLOY
+heroku config:set TRANSFERATU_USER=$USERNAME -a shogun-$DEPLOY
+heroku config:set TRANSFERATU_PASSWORD=$PASSWORD -a shogun-$DEPLOY
+heroku config:set TRANSFERATU_CALLBACK_PASSWORD=$CALLBACK -a shogun-$DEPLOY
