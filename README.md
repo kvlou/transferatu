@@ -69,6 +69,8 @@ $ heroku config:set HEROKU_API_TOKEN=<your-token> \
 Setting config vars and restarting <your-app-name>... done, v56
 ```
 
+Generate and set the fernet key. 
+
 Transferatu also needs a Postgres database:
 
 ```console
@@ -91,6 +93,12 @@ $ heroku run bundle exec rake 'users:create[heroku-postgres-<your-name>]'
 ```
 You'll then set the environment variables on your staging shogun.
 
+```console
+$ heroku config:add TRANSFERATU_URL=https://<your-app>.herokuapp.com \
+   TRANSFERATU_USER=heroku-postgres-<your-name> \
+   TRANSFERATU_PASSWORD=<the-password> \
+   TRANSFERATU_CALLBACK_PASSWORD=<the-callback-password>
+```
 
 ## Quiescence
 
