@@ -3,4 +3,3 @@ Rollbar.configure do |config|
   config.environment = ENV['ROLLBAR_ENV'] || 'staging'
   config.use_sucker_punch
 end
-

@@ -39,7 +39,7 @@ module Transferatu
           expect(e).to be_a StandardError
           expect(opts[:schedule_id]).to eq(sched1.uuid)
         end
-        expect(group).to receive(:log) { |line| expect(line).to match /could not create/i }
+        expect(group).to receive(:log) { |line| expect(line).to match(/could not create/i) }
         expect(sched1).to receive(:mark_executed)
 
         expect(processor).to receive(:process).with(sched1).and_raise(StandardError).twice

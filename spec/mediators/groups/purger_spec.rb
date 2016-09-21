@@ -1,7 +1,7 @@
 require "spec_helper"
 
 describe Transferatu::Mediators::Groups::Purger do
-  let(:group)     { create(:group, deleted_at: Time.now) }
+  let(:group) { create(:group, deleted_at: Time.now) }
 
   let(:aws_key_id) { 'my-key-id' }
   let(:aws_secret) { 'my-key-secret' }

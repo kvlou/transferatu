@@ -23,8 +23,6 @@ module Transferatu
       store[:current_user]
     end
 
-    private
-
     def self.store
       Thread.current[:request_store] ||= {}
     end

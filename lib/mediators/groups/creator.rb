@@ -12,7 +12,7 @@ module Transferatu
         @user.add_group(name: @name,
                         log_input_url: @log_input_url,
                         backup_limit: @backup_limit)
-      rescue Sequel::UniqueConstraintViolation => e
+      rescue Sequel::UniqueConstraintViolation
         # allow "undelete" if a user is trying to create the "same"
         # group as an old, deleted one
         group = @user.groups_dataset.where(name: @name).first

@@ -11,4 +11,4 @@ task :spec do
   exit(code) unless code == 0
 end
 
-task :default => :spec
+task default: :spec

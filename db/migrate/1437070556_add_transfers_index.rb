@@ -1,5 +1,4 @@
 Sequel.migration do
-
   no_transaction
 
   change do

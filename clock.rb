@@ -7,7 +7,6 @@ require "clockwork"
 $stdout.sync = true
 
 module Clockwork
-
   every(1.minute, "top-off-workers") do
     Pliny.log(task: 'top-off-workers') do
       Transferatu::WorkerManager.new.check_workers
@@ -17,8 +16,8 @@ module Clockwork
   every(1.minute, "log-metrics") do
     pending_xfer_count = Transferatu::Transfer.pending.count
     active_xfer_count = Transferatu::Transfer.in_progress.count
-    Pliny.log(:"sample#pending_xfer_count" => pending_xfer_count,
-              :"sample#active_xfer_count" => active_xfer_count)
+    Pliny.log("sample#pending_xfer_count": pending_xfer_count,
+              "sample#active_xfer_count": active_xfer_count)
   end
 
   every(4.hours, "mark-restart") do
@@ -40,8 +39,8 @@ module Clockwork
       end
     end
     duration = Time.now - started_at
-    Pliny.log(:"sample#purge_duration" => duration,
-              :"sample#purge_succeeded" => succeeded,
-              :"sample#purge_succeeded" => failed)
+    Pliny.log("sample#purge_duration": duration,
+              "sample#purge_succeeded": succeeded,
+              "sample#purge_failed": failed)
   end
 end

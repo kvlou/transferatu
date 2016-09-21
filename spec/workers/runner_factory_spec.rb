@@ -29,7 +29,7 @@ module Transferatu
             "PostgreSQL 9.2.8 on x86_64-unknown-linux-gnu, compiled by gcc (Ubuntu 4.8.2-16ubuntu6) 4.8.2, 64-bit",
             "PostgreSQL 9.3.4 on x86_64-unknown-linux-gnu, compiled by gcc (Ubuntu 4.8.2-16ubuntu6) 4.8.2, 64-bit"
           ].each do |version|
-            it "#{if valid; "succeeds"; "fails"; end} with transfer from #{from} (version #{version}) to #{to}" do
+            it "#{valid ? "succeeds" : "fails"} with transfer from #{from} (version #{version}) to #{to}" do
               if from_type == 'pg_dump'
                 expect(Sequel).to receive(:connect).with(from).and_yield(from_conn).twice
                 expect(from_conn).to receive(:fetch)
@@ -91,7 +91,7 @@ module Transferatu
 
       it "delegates to Open3.popen3 and wraps the result in a ShellFuture" do
         expect(::Open3).to receive(:popen3).and_return([stdin, stdout, stderr, wthr])
-        result = s.run_command(env, cmd)
+        result = s.run_command(cmd, env)
         expect(result).to be_instance_of(ShellFuture)
         expect(result.stdin).to be stdin
         expect(result.stdout).to be stdout
@@ -210,7 +210,7 @@ module Transferatu
 
     describe "#run_async" do
       before do
-        expect(source).to receive(:run_command) do |env, command|
+        expect(source).to receive(:run_command) do |command, env|
           expect(command).to include("#{root}/bin/pg_dump", user, host, port.to_s, dbname)
           expect(command).not_to include(password)
           expect(env["LD_LIBRARY_PATH"]).to eq("#{root}/lib")
@@ -290,7 +290,7 @@ module Transferatu
         sink.run_async
         allow(wthr).to receive(:value).and_return(success)
         sink.wait
-        expect(transfer.logs(limit: -1).map(&:message)).to include(*%w(1 2 3))
+        expect(transfer.logs(limit: -1).map(&:message)).to include('1', '2', '3')
       end
 
       describe "#wait" do
@@ -470,7 +470,7 @@ module Transferatu
 
     describe "#run_async" do
       before do
-        expect(sink).to receive(:run_command) { |env, command|
+        expect(sink).to receive(:run_command) { |command, env|
           expect(command).to include("#{root}/bin/pg_restore", user, host, port.to_s, dbname)
           expect(command).not_to include(password)
           expect(env["LD_LIBRARY_PATH"]).to eq("#{root}/lib")

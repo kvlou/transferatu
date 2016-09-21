@@ -25,7 +25,7 @@ module Transferatu::Endpoints
                   backup_limit: data["backup_limit"]
                 )
           respond serialize(group), status: 201
-        rescue Sequel::UniqueConstraintViolation => e
+        rescue Sequel::UniqueConstraintViolation
           raise Pliny::Errors::Conflict, "group #{data["name"]} already exists"
         end
       end

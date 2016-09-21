@@ -1,5 +1,4 @@
 module Transferatu
-
   # A DataMover transfers data between a data Source and a data Sink.
   # Both of these must support a simple API consisting of three
   # methods; both are very similar.
@@ -46,7 +45,6 @@ module Transferatu
   # Given these, a DataMover can transfer data from Source to Sink,
   # expose progress, and propagate cancelations.
   class DataMover
-
     CHUNK_SIZE = 512 * 1024
 
     def initialize(source, sink)
@@ -61,7 +59,7 @@ module Transferatu
       @lock.synchronize { @processed_bytes }
     end
 
-    def warnings  
+    def warnings
       @sink && @sink.warnings
     end
 

@@ -2,8 +2,8 @@ require 'spec_helper'
 
 module Transferatu
   describe WorkerManager do
-    let(:platform_api)  { double(:platform_api, dyno: dyno_api) }
-    let(:dyno_api)     { double(:dynos) }
+    let(:platform_api) { double(:platform_api, dyno: dyno_api) }
+    let(:dyno_api) { double(:dynos) }
     let(:app_name)      { 'transferatu' }
     let(:api_token)     { 'a super-secret token' }
     let(:worker_count)  { 5 }

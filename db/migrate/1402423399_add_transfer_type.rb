@@ -8,6 +8,6 @@ Sequel.migration do
   down do
     alter_table :transfers do
       drop_column :type
-    end    
+    end
   end
 end

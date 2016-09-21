@@ -7,7 +7,7 @@ module Transferatu
     one_to_many :transfers
     one_to_many :schedules
 
-    attr_secure :log_input_url, :secret => Config.at_rest_fernet_secret
+    attr_secure :log_input_url, secret: Config.at_rest_fernet_secret
 
     def active_backups
       self.transfers_dataset.where(to_type: 'gof3r', deleted_at: nil)

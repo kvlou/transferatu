@@ -87,7 +87,6 @@ module Transferatu
                     timezone: 'America/Chicago',
                     retain_weeks: 12,
                     retain_months: 19 }
-        expected_uuid = Schedule.first.uuid
         put "/groups/#{@group.name}/schedules/#{request_data[:name]}", updates
         verify_response.call(updates)
       end

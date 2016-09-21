@@ -74,7 +74,7 @@ module Transferatu
 
       it "destroys schedules that resolve to nil" do
         expect(resolver).to receive(:resolve).with(schedule).and_return(nil)
-        expect(schedule.group).to receive(:log).with /destroying.*#{schedule.name}/i
+        expect(schedule.group).to receive(:log).with(/destroying.*#{schedule.name}/i)
         processor.process(schedule)
         expect(schedule.deleted_at).to_not be_nil
       end

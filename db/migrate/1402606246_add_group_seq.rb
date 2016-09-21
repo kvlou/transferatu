@@ -31,6 +31,6 @@ EOF
     end
     alter_table :transfers do
       drop_column :transfer_num
-    end    
+    end
   end
 end

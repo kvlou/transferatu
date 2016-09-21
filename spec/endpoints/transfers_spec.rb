@@ -34,7 +34,7 @@ module Transferatu::Endpoints
         get "/groups/#{@group.name}/transfers"
         expect(last_response.status).to eq(200)
         expect(JSON.parse(last_response.body).find do |xfer|
-                 xfer[:uuid] = other_xfer.uuid
+                   xfer[:uuid] = other_xfer.uuid
                  end).to be_nil
       end
     end
@@ -94,7 +94,6 @@ module Transferatu::Endpoints
                         to_name:   'esther')
         expect(last_response.status).to eq(201)
       end
-
 
       it "accepts optional num_keep value" do
         post "/groups/#{@group.name}/transfers",
@@ -172,7 +171,7 @@ module Transferatu::Endpoints
     end
 
     describe "POST /groups/:name/transfers/actions/cancel" do
-      let(:xfer)    { create(:transfer, group: @group) }
+      let(:xfer) { create(:transfer, group: @group) }
 
       before do
         header "Content-Type", "application/json"

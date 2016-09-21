@@ -11,16 +11,20 @@ module Transferatu
           @dur = duration
           @result = success
         end
+
         def processed_bytes
           tot = 1024**3
           [ (Time.now.to_f / (@start.to_f + @dur) * tot), tot ].min
         end
+
         def cancel; @result = false; end
+
         def run_transfer
           @start = Time.now
           sleep @dur
           @result
         end
+
         def warnings
           0
         end

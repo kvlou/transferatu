@@ -33,14 +33,12 @@ EOF
       end
 
       def verify_callback(url)
-        begin
-          parsed = URI.parse(url)
-          if parsed.scheme != 'https'
-            raise ArgumentError, "Unsupported callback_url scheme #{parsed.scheme}; must be https"
-          end
-        rescue URI::InvalidURIError
-          raise ArgumentError, "Could not parse callback_url"
+        parsed = URI.parse(url)
+        if parsed.scheme != 'https'
+          raise ArgumentError, "Unsupported callback_url scheme #{parsed.scheme}; must be https"
         end
+      rescue URI::InvalidURIError
+        raise ArgumentError, "Could not parse callback_url"
       end
     end
   end

@@ -5,7 +5,7 @@ require './lib/initializer'
 Sequel.migration do
   up do
     Transferatu::User.all.each do |user|
-      user.callback_password = password = SecureRandom.base64(128)
+      user.callback_password = SecureRandom.base64(128)
       user.save
     end
   end

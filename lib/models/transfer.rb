@@ -15,12 +15,12 @@ module Transferatu
     many_to_one :group
     many_to_one :schedule
 
-    attr_secure :from_url, :secret => Config.at_rest_fernet_secret
-    attr_secure :to_url, :secret => Config.at_rest_fernet_secret
-    attr_secure :from_bastion_key, :secret => Config.at_rest_fernet_secret
-    attr_secure :from_bastion_host, :secret => Config.at_rest_fernet_secret
-    attr_secure :to_bastion_key, :secret => Config.at_rest_fernet_secret
-    attr_secure :to_bastion_host, :secret => Config.at_rest_fernet_secret
+    attr_secure :from_url, secret: Config.at_rest_fernet_secret
+    attr_secure :to_url, secret: Config.at_rest_fernet_secret
+    attr_secure :from_bastion_key, secret: Config.at_rest_fernet_secret
+    attr_secure :from_bastion_host, secret: Config.at_rest_fernet_secret
+    attr_secure :to_bastion_key, secret: Config.at_rest_fernet_secret
+    attr_secure :to_bastion_host, secret: Config.at_rest_fernet_secret
 
     def self.begin_next_pending
       self.db.transaction(isolation: :serializable) do
@@ -44,9 +44,11 @@ EOF
       def in_progress
         self.where(Sequel.~(started_at: nil), canceled_at: nil, finished_at: nil)
       end
+
       def pending
         self.where(started_at: nil, canceled_at: nil, finished_at: nil)
       end
+
       def purgeable(deleted_before: Time.now - 7.days)
         self.where(to_type: 'gof3r', purged_at: nil)
           .where { deleted_at < deleted_before }

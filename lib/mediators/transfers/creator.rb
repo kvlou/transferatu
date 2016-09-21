@@ -76,7 +76,7 @@ module Transferatu
                           to_bastion_host: @to_bastion_host, to_bastion_key: @to_bastion_key,
                           options: @options, schedule: @schedule }
           unless @num_keep.nil?
-            create_opts.merge!(num_keep: @num_keep)
+            create_opts[:num_keep] = @num_keep
           end
           Transfer.create(create_opts)
         rescue StandardError => e

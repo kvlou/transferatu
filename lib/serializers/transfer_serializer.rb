@@ -18,8 +18,6 @@ module Transferatu::Serializers
       response
     end
 
-    private
-
     def self.basic_structure(transfer)
       response = {
         uuid: transfer.uuid,

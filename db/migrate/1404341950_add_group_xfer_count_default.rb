@@ -9,6 +9,6 @@ Sequel.migration do
     alter_table :groups do
       # technically the default was previously unset
       set_column_default :transfer_count, nil
-    end    
+    end
   end
 end

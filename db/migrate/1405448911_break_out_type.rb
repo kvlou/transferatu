@@ -38,7 +38,7 @@ EOF
       drop_column :from_type
       drop_column :to_type
     end
-    
+
     execute "DROP TYPE target_type"
   end
 end

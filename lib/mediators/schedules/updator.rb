@@ -26,10 +26,10 @@ module Transferatu
                        hour: @hour, dows: map_days(@days), timezone: @tz }
 
         unless @retain_weeks.nil?
-          sched_opts.merge!(retain_weeks: @retain_weeks.to_i)
+          sched_opts[:retain_weeks] = @retain_weeks.to_i
         end
         unless @retain_months.nil?
-          sched_opts.merge!(retain_months: @retain_months.to_i)
+          sched_opts[:retain_months] = @retain_months.to_i
         end
         @schedule.update(sched_opts)
         @schedule

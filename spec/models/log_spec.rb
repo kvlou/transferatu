@@ -89,7 +89,9 @@ describe Transferatu::ThreadSafeLogger do
   let(:loggable) { Class.new do
                      include Transferatu::Loggable
                      def initialize(lines); @lines = lines; end
+
                      def uuid; "b376f1c7-74fb-aa41-9276-bb660ae22773"; end
+
                      def log(line, opts)
                        @lines << line
                        super

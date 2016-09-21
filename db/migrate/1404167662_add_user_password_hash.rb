@@ -8,6 +8,6 @@ Sequel.migration do
   down do
     alter_table :users do
       drop_column :password_hash
-    end    
+    end
   end
 end

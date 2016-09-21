@@ -1,6 +1,5 @@
 module Transferatu
   class ScheduleResolver
-
     # Attempt to resolve a schedule to a hash containing data for
     # creating a transfer, as if coming from a normal POST to the
     # +/groups/:name/transfers+ endpoint. If the schedule callback url
@@ -11,7 +10,7 @@ module Transferatu
                           schedule.group.user.callback_password)
       result = begin
                  endpoint.get
-               rescue RestClient::Gone, RestClient::ResourceNotFound => e
+               rescue RestClient::Gone, RestClient::ResourceNotFound
                  return nil
                end
       JSON.parse(result)

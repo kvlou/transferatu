@@ -18,7 +18,7 @@ module Clockwork
   every(5.minutes, "run-scheduled-transfers") do
     resolver = Transferatu::ScheduleResolver.new
     processor = Transferatu::ScheduleProcessor.new(resolver)
-    manager =  Transferatu::ScheduleManager.new(processor)
+    manager = Transferatu::ScheduleManager.new(processor)
 
     scheduled_time = Time.now
 

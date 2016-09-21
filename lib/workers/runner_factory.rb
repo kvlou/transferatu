@@ -4,7 +4,6 @@ require 'pgversion'
 module Transferatu
   class RunnerFactory
     def self.runner_for(transfer, from_url, to_url)
-
       from_type, to_type = transfer.from_type, transfer.to_type
 
       if from_type == 'gof3r' && to_type == 'gof3r'
@@ -151,7 +150,7 @@ module Transferatu
         if kstr.length == 1
           result << "-#{kstr}"
         else
-          result << "--#{kstr.gsub(/_/, '-')}"
+          result << "--#{kstr.tr('_', '-')}"
         end
         unless v == true
           result << v.to_s
@@ -160,7 +159,7 @@ module Transferatu
       result + args
     end
 
-    def run_command(env={}, cmd)
+    def run_command(cmd, env={})
       stdin, stdout, stderr, wthr = Open3.popen3(env, *cmd)
       ShellFuture.new(stdin, stdout, stderr, wthr)
     end
@@ -189,7 +188,7 @@ module Transferatu
 
     def run_async
       @logger.call("Running #{@cmd.join(' ')}", level: :internal)
-      @future = run_command(@env, @cmd)
+      @future = run_command(@cmd, @env)
       @future.drain_stderr(@logger)
       @future.stdout
     end
@@ -225,7 +224,7 @@ module Transferatu
       key = uri.path.sub(/\A\//, '')
       # gof3r put -b $bucket -k $key -m x-amz-server-side-encryption:AES256;
       # we assume the S3 keys are in the environment for now.
-      @cmd = command(%W(gof3r put), { b: bucket, k: key,
+      @cmd = command(%w(gof3r put), { b: bucket, k: key,
                                       m: 'x-amz-server-side-encryption:AES256'})
       @logger = logger
     end
@@ -281,7 +280,7 @@ module Transferatu
 
     def run_async
       @logger.call("Running #{@cmd.join(' ')}}", level: :internal)
-      @future = run_command(@env, @cmd)
+      @future = run_command(@cmd, @env)
       # We don't expect any output from stdout. Capture it anyway, but
       # keep it internal.
       @future.drain_stdout(->(line) { @logger.call(line, level: :internal) })
@@ -297,7 +296,7 @@ module Transferatu
       @failed_plpgsql_create = false
       @pg_restore_error_count = nil
       @future.drain_stderr(->(line) do
-                             if line =~ /\ACommand was: COMMENT ON EXTENSION /
+                             if line.start_with?('Command was: COMMENT ON EXTENSION ')
                                @failed_extension_comment_count += 1
                              elsif line =~ /\ACommand was: CREATE(?: OR REPLACE)? PROCEDURAL LANGUAGE plpgsql;/
                                # N.B.: we do a boolean flag here instead of a count so that
@@ -325,13 +324,13 @@ module Transferatu
 
       if result.exitstatus == 0
         @succeeded = true
-      elsif !@pg_restore_error_count.nil? 
+      elsif !@pg_restore_error_count.nil?
         # Program exited but completed successfully with warnings
         @succeeded = true
 
         expected_err_count = @failed_extension_comment_count
         expected_err_count += 1 if @failed_plpgsql_create
-      
+
         if expected_err_count != @pg_restore_error_count
           @warnings = @pg_restore_error_count
         end
@@ -339,7 +338,7 @@ module Transferatu
         @succeeded = false
       end
 
-      return @succeeded 
+      @succeeded
     end
 
     def alive?
@@ -366,7 +365,7 @@ module Transferatu
       key = URI.decode(uri.path.sub(/\A\//, ''))
       # gof3r get -b $bucket -k $key; we assume the S3 keys are in the
       # environment.
-      @cmd = command(%W(gof3r get), { b: bucket, k: key})
+      @cmd = command(%w(gof3r get), { b: bucket, k: key})
       @url = url
       @logger = logger
     end

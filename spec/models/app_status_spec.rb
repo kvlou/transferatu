@@ -55,7 +55,7 @@ module Transferatu
       it "reflects out-of-band updates to the system" do
         before = Time.now
         AppStatus.db.run "UPDATE app_status SET updated_at = now()"
-        expect(status.updated_at).to be > before        
+        expect(status.updated_at).to be > before
       end
     end
   end

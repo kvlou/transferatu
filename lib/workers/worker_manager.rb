@@ -2,7 +2,7 @@ module Transferatu
   class WorkerManager
     include Pliny::Log
 
-    WORK_COMMAND = "bundle exec rake transfers:run"
+    WORK_COMMAND = "bundle exec rake transfers:run".freeze
 
     def initialize
       @heroku = PlatformAPI.connect_oauth(Config.heroku_api_token, cache: Moneta.new(:Null))
@@ -14,7 +14,7 @@ module Transferatu
       existing_workers = running_workers
 
       active_workers = existing_workers.select { |w| w['state'] == 'up' }
-      
+
       existing_statuses = WorkerStatus.check(*active_workers.map { |w| w['name'] }).all
 
       # for each worker, make sure that it's "making progress"; ensure:

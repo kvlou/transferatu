@@ -1,7 +1,6 @@
 require "net/ssh/gateway"
 module Transferatu
   class TransferWorker
-
     def initialize(status)
       @status = status
     end
@@ -87,7 +86,7 @@ module Transferatu
 
       # TODO: fix this tomorrow
       # This was disabled because eviction can evict manual backups
-      #Transferatu::Mediators::Transfers::Evictor.run(transfer: transfer)
+      # Transferatu::Mediators::Transfers::Evictor.run(transfer: transfer)
     ensure
       @status.update(transfer: nil)
     end

@@ -23,13 +23,12 @@ require_relative "factories"
 # may be a moot point). Note that we omit the app_status table, since
 # its contents are really more a part of the schema than the data
 # model.
-DatabaseCleaner.strategy = :truncation, {:except => %w[app_status]}
+DatabaseCleaner.strategy = :truncation, {except: %w[app_status]}
 
 # pull in test initializers
 Pliny::Utils.require_glob("#{Config.root}/spec/support/**/*.rb")
 
 RSpec.configure do |config|
-
   config.before :all do
     load('db/seeds.rb') if File.exist?('db/seeds.rb')
   end

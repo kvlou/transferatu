@@ -9,9 +9,9 @@ describe Transferatu::WorkerStatus do
 
     it "lists the latest status for each dyno name" do
       d1 = create(:worker_status, dyno_name: 'run.1', created_at: Time.now - 1.hour)
-      old_d1 = create(:worker_status, dyno_name: 'run.1', created_at: Time.now - 25.hours)
+      create(:worker_status, dyno_name: 'run.1', created_at: Time.now - 25.hours)
       d2 = create(:worker_status, dyno_name: 'run.2', created_at: Time.now - 1.hour)
-      old_d2 = create(:worker_status, dyno_name: 'run.2', created_at: Time.now - 49.hours)
+      create(:worker_status, dyno_name: 'run.2', created_at: Time.now - 49.hours)
 
       statuses = Transferatu::WorkerStatus.check(included1, included2).all
 
