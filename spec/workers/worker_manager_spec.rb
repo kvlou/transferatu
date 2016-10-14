@@ -41,7 +41,7 @@ module Transferatu
             dyno["command"] = "sleep #{i}"
             dyno["name"] = "worker.#{i}"
           end
-          create(:worker_status, dyno_name: dyno["name"])
+          create(:worker_status, uuid: dyno["id"], dyno_name: dyno["name"])
           dyno
         end
       end
@@ -86,11 +86,11 @@ module Transferatu
           expect(dyno_api).to receive(:list).with(app_name)
             .and_return(dynos)
           bad_dyno = dynos.first
-          expect(dyno_api).to receive(:restart).with(app_name, bad_dyno["name"])
+          expect(dyno_api).to receive(:restart).with(app_name, bad_dyno["id"])
           expect(dyno_api).to receive(:create)
             .with(app_name, command: WorkerManager::WORK_COMMAND, size: worker_size)
 
-          WorkerStatus.where(dyno_name: bad_dyno["name"]).update(created_at: Time.now - 4.hours)
+          WorkerStatus.where(uuid: bad_dyno["id"]).update(created_at: Time.now - 4.hours)
 
           manager.check_workers
         end
@@ -99,11 +99,11 @@ module Transferatu
           dynos = make_dynos(workers: 5)
           expect(dyno_api).to receive(:list).with(app_name).and_return(dynos)
           bad_dyno = dynos.first
-          expect(dyno_api).to receive(:restart).with(app_name, bad_dyno["name"])
+          expect(dyno_api).to receive(:restart).with(app_name, bad_dyno["id"])
           expect(dyno_api).to receive(:create)
             .with(app_name, command: WorkerManager::WORK_COMMAND, size: worker_size)
 
-          WorkerStatus.where(dyno_name: bad_dyno["name"])
+          WorkerStatus.where(uuid: bad_dyno["id"])
             .update(created_at: Time.now - 4.hours,
                     updated_at: Time.now - 4.hours)
 
@@ -114,12 +114,12 @@ module Transferatu
           dynos = make_dynos(workers: 5)
           expect(dyno_api).to receive(:list).with(app_name).and_return(dynos)
           bad_dyno = dynos.first
-          expect(dyno_api).to receive(:restart).with(app_name, bad_dyno["name"])
+          expect(dyno_api).to receive(:restart).with(app_name, bad_dyno["id"])
           expect(dyno_api).to receive(:create)
             .with(app_name, command: WorkerManager::WORK_COMMAND, size: worker_size)
 
           bad_transfer = create(:transfer)
-          WorkerStatus.where(dyno_name: bad_dyno["name"]).update(transfer_id: bad_transfer.uuid)
+          WorkerStatus.where(uuid: bad_dyno["id"]).update(transfer_id: bad_transfer.uuid)
           Transfer.where(uuid: bad_transfer.uuid).update(updated_at: Time.now - 4.hours)
 
           manager.check_workers
@@ -133,7 +133,7 @@ module Transferatu
           allow(dyno_api).to receive(:create)
 
           bad_transfer = create(:transfer)
-          WorkerStatus.where(dyno_name: bad_dyno["name"]).update(transfer_id: bad_transfer.uuid)
+          WorkerStatus.where(uuid: bad_dyno["id"]).update(transfer_id: bad_transfer.uuid)
           Transfer.where(uuid: bad_transfer.uuid).update(updated_at: Time.now - 4.hours)
 
           manager.check_workers

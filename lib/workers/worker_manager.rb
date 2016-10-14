@@ -15,7 +15,7 @@ module Transferatu
 
       active_workers = existing_workers.select { |w| w['state'] == 'up' }
 
-      existing_statuses = WorkerStatus.check(*active_workers.map { |w| w['name'] }).all
+      existing_statuses = WorkerStatus.where(uuid: active_workers.map { |w| w['id'] }).all
 
       # for each worker, make sure that it's "making progress"; ensure:
       #  - the worker was updated or created recently
@@ -38,7 +38,7 @@ module Transferatu
             status.transfer.log "aborting stuck transfer"
             status.transfer.fail
           end
-          kill_worker(status.dyno_name)
+          kill_worker(status.uuid)
         end
       end
 
