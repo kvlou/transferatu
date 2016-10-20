@@ -7,7 +7,7 @@ require "clockwork"
 $stdout.sync = true
 
 module Clockwork
-  every(1.minute, "top-off-workers") do
+  every(3.minute, "top-off-workers") do
     Pliny.log(task: 'top-off-workers') do
       Transferatu::WorkerManager.new.check_workers
     end
