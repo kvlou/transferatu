@@ -7,10 +7,10 @@ require "clockwork"
 $stdout.sync = true
 
 module Clockwork
-  # Originally: Dump 250 jobs in the queue every 5 minutes
-
-  # That's 250*12 or 3000 an hour. Peak is ~9000 jobs in one hour
-  # We will need to dump at least 850 every 5 minutes to achieve throughput
+  # Current peak of the scheduled backups is ~4000 in one hour. In addition
+  # to that,  we have manual backups.
+  # Let's say that we need to dump 4000 jobs per hour, which is about
+  # 350 every 5 minutes. For now, set it to 400 to see how it goes.
 
   # Any scheduled job that should have happened in the last 12 hours,
   # but has not been run in the last 12 hours is eligible
@@ -23,7 +23,7 @@ module Clockwork
     scheduled_time = Time.now
 
     Pliny.log(task: 'run-scheduled-transfers', scheduled_for: scheduled_time) do
-      manager.run_schedules(scheduled_time, 1000)
+      manager.run_schedules(scheduled_time, 400)
     end
   end
 end
