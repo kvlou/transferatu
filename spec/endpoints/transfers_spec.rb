@@ -55,7 +55,7 @@ module Transferatu::Endpoints
       it "does not include deleted transfers" do
         xfer.destroy
         get "/groups/#{@group.name}/transfers/#{xfer.uuid}"
-        expect(last_response.status).to eq(410)
+        expect(last_response.status).to eq(404)
       end
 
       it "does not include transfers from other groups" do

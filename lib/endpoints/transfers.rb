@@ -16,16 +16,13 @@ module Transferatu::Endpoints
       helpers do
         def find_transfer(group, id)
           xfer = if id =~ /\A\d+\z/
-                   group.transfers_dataset.where(transfer_num: id.to_i)
+                   group.transfers_dataset.where(transfer_num: id.to_i, deleted_at: nil)
                  else
-                   group.transfers_dataset.where(uuid: id)
+                   group.transfers_dataset.where(uuid: id, deleted_at: nil)
                  end.first
           if xfer.nil?
             raise Pliny::Errors::NotFound,
               "transfer #{id} for group #{group.name} does not exist"
-          elsif xfer.deleted?
-            raise Pliny::Errors::Gone,
-              "transfer #{id} for group #{group.name} destroyed at #{xfer.deleted_at}"
           else
             xfer
           end
