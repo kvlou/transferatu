@@ -69,6 +69,12 @@ module Transferatu::Endpoints
         expect(last_response.status).to eq(200)
         expect(JSON.parse(last_response.body)["logs"]).to_not be_nil
       end
+
+      it "does not include logs with the verbose flag with false" do
+        get "/groups/#{@group.name}/transfers/#{xfer.uuid}?verbose=false"
+        expect(last_response.status).to eq(200)
+        expect(JSON.parse(last_response.body)["logs"]).to be_nil
+      end
     end
 
     describe "POST /groups/:name/transfers" do
