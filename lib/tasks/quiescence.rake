@@ -11,7 +11,7 @@ namespace :quiescence do
 
     Transferatu::AppStatus.quiesce
     if mode == 'hard'
-      Transfer.present.in_progress.each { |t| t.cancel }
+      Transferatu::Transfer.present.in_progress.each { |t| t.cancel }
     end
   end
 
