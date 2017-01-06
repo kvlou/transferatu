@@ -14,6 +14,11 @@ Currently supported transfer methods:
 
 Transferatu is a [pliny](https://github.com/interagent/pliny) app.
 
+## Running tests locally
+
+```
+bin/test
+```
 
 ## Setup
 
@@ -78,7 +83,7 @@ $ heroku config:set HEROKU_API_TOKEN=<your-token> \
 Setting config vars and restarting <your-app-name>... done, v56
 ```
 
-Generate and set the fernet key. 
+Generate and set the fernet key.
 
 Transferatu also needs a Postgres database:
 

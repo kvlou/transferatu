@@ -1,0 +1,2 @@
+(while read line; do export $line; done < .env.test; bundle exec rake db:setup)
+bundle exec rspec
