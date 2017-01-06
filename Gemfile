@@ -43,10 +43,11 @@ group :development do
 end
 
 group :test do
+  gem "webmock"
   gem "database_cleaner"
   gem "factory_girl", "~> 4.0"
   gem "rack-test"
-  gem "rspec"
+  gem "rspec", require: "webmock/rspec"
   gem "rubocop", require: false
   gem "rubocop-rspec"
 end

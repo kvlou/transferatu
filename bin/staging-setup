@@ -31,3 +31,6 @@ heroku config:set TRANSFERATU_USER=$USERNAME -a shogun-$DEPLOY
 heroku config:set TRANSFERATU_PASSWORD=$PASSWORD -a shogun-$DEPLOY
 heroku config:set TRANSFERATU_CALLBACK_PASSWORD=$CALLBACK -a shogun-$DEPLOY
 
+heroku config:set WORKER_COUNT=4 -a $transferatu
+heroku config:set WORKER_SIZE=Private-M -a $transferatu
+heroku addons:create rollbar:hobby -a $transferatu

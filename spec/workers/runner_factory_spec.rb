@@ -22,6 +22,9 @@ module Transferatu
             def transfer.log
               # the RunnerFactory requires a #log method on its transfer
             end
+            stub_request(:head, "https://example.com/my-backup").
+                to_return(:status => 200, :body => "",
+                          :headers => {"location" => "https://www.example.com/my-backup"})
           end
           # TODO: verify not just that several versions work, but that
           # the resulting runner has the expected version
@@ -397,6 +400,12 @@ module Transferatu
     let(:wthr)     { double(:wthr, pid: 22) }
     let(:future)   { ShellFuture.new(stdin, stdout, stderr, wthr) }
 
+    before do
+      stub_request(:head, "https://example.com/my-backup").
+          to_return(:status => 200, :body => "",
+                    :headers => {"location" => "https://www.example.com/my-backup"})
+    end
+
     describe "#run_async" do
       before do
         expect(source).to receive(:run_command) { |command|
@@ -441,6 +450,23 @@ module Transferatu
           expect(future).to receive(:cancel)
           source.cancel
         end
+      end
+    end
+
+    describe "#get_target_url_from_possible_redirect" do
+      before do
+        stub_request(:head, "https://example.com/my-backup").
+            to_return(:status => 301, :body => "",
+                      :headers => {"location" => "https://www.example.com/my-backup"})
+      end
+
+      it "updates the url for the commmand" do
+        redirect_source = HtcatSource.new("https://example.com/my-backup", logger: logger)
+        expect(redirect_source).to receive(:run_command) { |command|
+          expect(command).to include("htcat", "https://www.example.com/my-backup")
+        }.and_return(future)
+
+        redirect_source.run_async
       end
     end
   end

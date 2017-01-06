@@ -15,6 +15,8 @@ GEM
       minitest (~> 5.1)
       thread_safe (~> 0.3, >= 0.3.4)
       tzinfo (~> 1.1)
+    addressable (2.5.0)
+      public_suffix (~> 2.0, >= 2.0.2)
     ast (2.3.0)
     aws-sdk-core (2.0.21)
       builder (~> 3.0)
@@ -39,6 +41,8 @@ GEM
       json_schema (~> 0.3)
       multi_json (~> 1.10)
       rack (~> 1.5)
+    crack (0.4.3)
+      safe_yaml (~> 1.0.0)
     database_cleaner (1.4.0)
     debugger-linecache (1.2.0)
     diff-lcs (1.2.5)
@@ -54,6 +58,7 @@ GEM
     foreman (0.77.0)
       dotenv (~> 1.0.2)
       thor (~> 0.19.1)
+    hashdiff (0.3.2)
     heroics (0.0.12)
       erubis (~> 2.7.0)
       excon
@@ -114,6 +119,7 @@ GEM
     pry-doc (0.6.0)
       pry (~> 0.9)
       yard (~> 0.8)
+    public_suffix (2.0.5)
     puma (2.11.0)
       rack (>= 1.1, < 2.0)
     rack (1.6.2)
@@ -152,6 +158,7 @@ GEM
     rubocop-rspec (1.7.0)
       rubocop (>= 0.42.0)
     ruby-progressbar (1.8.1)
+    safe_yaml (1.0.4)
     sequel (4.21.0)
     sequel-paranoid (0.4.3)
       sequel
@@ -186,6 +193,10 @@ GEM
     unf_ext (0.0.7.2)
     unicode-display_width (1.1.1)
     valcro (0.1)
+    webmock (2.3.2)
+      addressable (>= 2.3.6)
+      crack (>= 0.3.2)
+      hashdiff
     yard (0.8.7.6)
 
 PLATFORMS
@@ -230,9 +241,10 @@ DEPENDENCIES
   sinatra-contrib
   sinatra-router
   sucker_punch
+  webmock
 
 RUBY VERSION
    ruby 2.2.2p95
 
 BUNDLED WITH
-   1.12.5
+   1.13.7

@@ -1,5 +1,6 @@
 require 'open3'
 require 'pgversion'
+require 'net/http'
 
 module Transferatu
   class RunnerFactory
@@ -400,8 +401,9 @@ module Transferatu
 
     def initialize(url, opts: {}, logger:)
       # htcat $url
-      @cmd = command('htcat', {}, url)
-      @uri = URI.parse(url)
+      proper_url = get_target_url_from_possible_redirect(url)
+      @cmd = command('htcat', {}, proper_url)
+      @uri = URI.parse(proper_url)
       @logger = logger
     end
 
@@ -423,6 +425,15 @@ module Transferatu
 
     def alive?
       @future && @future.alive?
+    end
+
+    def get_target_url_from_possible_redirect(url)
+      uri = URI.parse(url)
+      http = Net::HTTP.new(uri.host, uri.port)
+      http.use_ssl = uri.scheme == "https"
+      res = http.request(Net::HTTP::Head.new(uri))
+
+      /3\d{2}/.match(res.code).nil? ? url : res['location']
     end
   end
 end
