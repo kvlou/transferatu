@@ -17,7 +17,7 @@ heroku config:set AT_REST_FERNET_SECRET=`dd if=/dev/urandom bs=32 count=1 2>/dev
 git push heroku HEAD:master
 
 heroku pipelines:add transferatu -s development -a $transferatu
-heroku domains:add $transferatu.herokai.com -a $transferatu
+heroku sudo domains:add $transferatu.herokai.com -a -f $transferatu
 
 heroku pg:wait -a $transferatu
 heroku run bundle exec rake db:migrate -a $transferatu
@@ -30,3 +30,4 @@ heroku config:set TRANSFERATU_URL=https://$transferatu.herokai.com -a shogun-$DE
 heroku config:set TRANSFERATU_USER=$USERNAME -a shogun-$DEPLOY
 heroku config:set TRANSFERATU_PASSWORD=$PASSWORD -a shogun-$DEPLOY
 heroku config:set TRANSFERATU_CALLBACK_PASSWORD=$CALLBACK -a shogun-$DEPLOY
+

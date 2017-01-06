@@ -20,12 +20,14 @@ Transferatu is a [pliny](https://github.com/interagent/pliny) app.
 Transferatu is designed as a Heroku app:
 
 ```console
-$ heroku create <your-app-name>
+$ ./bin/staging-setup
 ```
 
 It needs a Heroku API token (to manage its workers) and AWS
 credentials to access S3. The best way to create the API token is with
-the [oauth plugin](https://github.com/heroku/heroku-oauth).
+the [oauth plugin](https://github.com/heroku/heroku-cli-oauth). You'll
+also need the [sudo plugin](https://github.com/heroku/heroku-sudo) to
+create the domain
 
 ```console
 $ heroku authorizations:create --description transferatu ----scope read-protected,write-protected
@@ -35,6 +37,13 @@ Created OAuth authorization.
   Token:       <your-token>
   Scope:       read-protected,write-protected
 ```
+#### Setup Domain and Cert
+
+[Create a Foundation team GitHub issue](https://github.com/heroku/foundation/issues/new)
+with the title "Add transferatu-$deploy.herokai.com cert/domain for transferatu-$deploy app"
+and add a label "interrupt".
+
+#### Continued Setup
 
 [Create an S3 bucket](http://docs.aws.amazon.com/AmazonS3/latest/gsg/CreatingABucket.html) and then
 [create an AWS user](http://docs.aws.amazon.com/IAM/latest/UserGuide/Using_SettingUpUser.html#Using_CreateUser_console)
