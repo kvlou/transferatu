@@ -20,98 +20,59 @@ Transferatu is a [pliny](https://github.com/interagent/pliny) app.
 bin/test
 ```
 
-## Setup
+## Staging Setup
 
 Transferatu is designed as a Heroku app:
 
 ```console
-$ ./bin/staging-setup
+$ ./bin/staging-setup $DEPLOY
 ```
 
-It needs a Heroku API token (to manage its workers) and AWS
-credentials to access S3. The best way to create the API token is with
-the [oauth plugin](https://github.com/heroku/heroku-cli-oauth). You'll
-also need the [sudo plugin](https://github.com/heroku/heroku-sudo) to
-create the domain
-
-```console
-$ heroku authorizations:create --description transferatu ----scope read-protected,write-protected
-Created OAuth authorization.
-  ID:          105a7bfa-34c3-476e-873a-b1ac3fdc12fb
-  Description: transferatu
-  Token:       <your-token>
-  Scope:       read-protected,write-protected
-```
 #### Setup Domain and Cert
 
+After running staging setup script,
 [Create a Foundation team GitHub issue](https://github.com/heroku/foundation/issues/new)
 with the title "Add transferatu-$deploy.herokai.com cert/domain for transferatu-$deploy app"
 and add a label "interrupt".
 
 #### Continued Setup
 
-[Create an S3 bucket](http://docs.aws.amazon.com/AmazonS3/latest/gsg/CreatingABucket.html) and then
-[create an AWS user](http://docs.aws.amazon.com/IAM/latest/UserGuide/Using_SettingUpUser.html#Using_CreateUser_console)
-with an access policy restricted to read and write that bucket and
-its contents:
+Create a new S3 bucket for transferatu via
+[AWS Management Console](https://console.aws.amazon.com/s3/home) with the name `xfrtu-$DEPLOY`.
+Create a new policy via [AWS Management Console](https://console.aws.amazon.com/iam/home?region=us-east-1#/policies),
+using "Create Your Own Policy", with following contents:
 
-```json
+```
+Policy Name: TransferatuS3BucketAccess
+Description: Transferatu's S3 Access policy
+Policy Document:
 {
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Action": "s3:*",
-      "Resource": [
-        "arn:aws:s3:::<your-transferatu-bucket>",
-        "arn:aws:s3:::<your-transferatu-bucket>/*"
-      ]
-    }
-  ]
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": "s3:*",
+            "Resource": [
+                "arn:aws:s3:::xfrtu-$DEPLOY",
+                "arn:aws:s3:::xfrtu-$DEPLOY/*"
+            ]
+        }
+    ]
 }
 ```
 
-Set the config vars related to these, as well as the app name
-(Transferatu needs to know this for run process management),
-and bucket name:
+Create a new AWS user via
+[AWS Management Console](https://console.aws.amazon.com/iam/home?region=us-east-1#/users) with name `xfrtu-$DEPLOY-iam`,
+with Access type "Programmatic access". Choose "Attach existing policies directly" and
+attach the TransferatuS3BucketAccess policy that you created above.
+
+Get newly created user's access key ID and secret access key,
+and set them to the staging app:
 
 ```console
-$ heroku config:set HEROKU_API_TOKEN=<your-token> \
-  HEROKU_APP_NAME=<your-app-name> \
-  AWS_ACCESS_KEY_ID=<your-role-id> \
-  AWS_SECRET_ACCESS_KEY=<your-role-key> \
-  S3_BUCKET_NAME=<your-transferatu-bucket>
-Setting config vars and restarting <your-app-name>... done, v56
-```
-
-Generate and set the fernet key.
-
-Transferatu also needs a Postgres database:
-
-```console
-$ heroku addons:add heroku-postgresql:premium-yanari
-```
-
-Once everything is set up, you can deploy, run a schema migration to
-set up the database, and scale up the clock process:
-
-```console
-$ git push heroku master
-...
-$ heroku run bundle exec rake db:migrate
-$ heroku ps:scale clock=1 scheduler=1
-```
-
-You'll have to create a user for Shogun to use when talking to Transferatu:
-```console
-$ heroku run bundle exec rake 'users:create[heroku-postgres-<your-name>]'
-```
-You'll then set the environment variables on your staging shogun.
-
-```console
-$ heroku config:add TRANSFERATU_URL=https://<your-app>.herokuapp.com \
-   TRANSFERATU_USER=heroku-postgres-<your-name> \
-   TRANSFERATU_PASSWORD=<the-password> \
-   TRANSFERATU_CALLBACK_PASSWORD=<the-callback-password>
+$ heroku config:set AWS_ACCESS_KEY_ID=<access-key-id> \
+  AWS_SECRET_ACCESS_KEY=<secret-access-key> \
+  S3_BUCKET_NAME=xfrtu-$DEPLOY -a transferatu-$DEPLOY
 ```
 
 ## Quiescence
