@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+#
+# Simple script to make local development without start-l2met-shuttle (or other
+# buildpack dependencies a bit easier.
+#
+PREFIX="bundle exec"
+if [ ! -z $L2MET_SHUTTLE_URL ]; then
+  PREFIX="start-l2met-shuttle $PREFIX"
+fi
+
+[[ "$0" != "${BASH_SOURCE[0]}" ]] || $PREFIX $@

@@ -1,3 +1,3 @@
-web: bundle exec puma --config config/puma.rb config.ru
-clock: bundle exec clockwork clock.rb
-scheduler: bundle exec clockwork scheduler.rb
+web:       bin/startup puma --config config/puma.rb config.ru
+clock:     bin/startup clockwork clock.rb
+scheduler: bin/startup clockwork scheduler.rb
