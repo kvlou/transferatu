@@ -28,10 +28,12 @@ module Transferatu
           (transfer && transfer.updated_at < expect_progress_since)
       end
 
-      Pliny.log(method: 'WorkerManager#check_workers', failed_workers: failed.count)
+      Pliny.log(app: Config.heroku_app_name,
+                method: 'WorkerManager#check_workers', failed_workers: failed.count)
 
       failed.each do |status|
-        Pliny.log(method: 'WorkerManager#check_workers', step: 'killing-failed',
+        Pliny.log(app: Config.heroku_app_name,
+                  method: 'WorkerManager#check_workers', step: 'killing-failed',
                   name: status.dyno_name,
                   uuid: status.uuid) do
           if status.transfer
@@ -44,10 +46,11 @@ module Transferatu
 
       needed_worker_count = Config.worker_count.to_i - (existing_workers.count - failed.count)
 
-      Pliny.log(method: 'WorkerManager#check_workers', needed_workers: needed_worker_count)
+      Pliny.log(app: Config.heroku_app_name,
+                method: 'WorkerManager#check_workers', needed_workers: needed_worker_count)
 
       needed_worker_count.times do |i|
-        Pliny.log(method: 'WorkerManager#check_workers', step: 'starting-new') do
+        Pliny.log(app: Config.heroku_app_name, method: 'WorkerManager#check_workers', step: 'starting-new') do
           run_worker(Config.worker_size)
         end
       end

@@ -22,7 +22,7 @@ module Clockwork
 
     scheduled_time = Time.now
 
-    Pliny.log(task: 'run-scheduled-transfers', scheduled_for: scheduled_time) do
+    Pliny.log(app: Config.heroku_app_name, task: 'run-scheduled-transfers', scheduled_for: scheduled_time) do
       manager.run_schedules(scheduled_time, 400)
     end
   end

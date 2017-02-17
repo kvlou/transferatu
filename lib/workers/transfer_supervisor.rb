@@ -6,7 +6,8 @@ module Transferatu
       worker = TransferWorker.new(status)
       loop do
         if AppStatus.updated_at > started_at
-          Pliny.log(method: 'TransferSupervisor.run', step: 'stale-worker-exiting')
+          Pliny.log(app: Config.heroku_app_name,
+                    method: 'TransferSupervisor.run', step: 'stale-worker-exiting')
           break
         end
         if AppStatus.quiesced?
