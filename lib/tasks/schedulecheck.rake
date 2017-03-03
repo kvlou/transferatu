@@ -4,14 +4,40 @@ namespace :schedules do
     Bundler.require
     require_relative "../initializer"
 
+    SHOGUN_DB = Sequel.connect(ENV['TEMPORARY_SHOGUN_FOLLOWER_URL'])
+
+    def shogun_database_name_valid?(app_uuid, schedule_name, database_name)
+      valid = SHOGUN_DB.fetch(<<-EOF).first[:valid]
+SELECT
+  count(*) > 0 AS valid
+FROM
+  heroku_resources hr
+    INNER JOIN services s ON hr.formation_id = s.formation_id
+    INNER JOIN timelines t ON s.timeline_id = t.id
+WHERE
+  hr.app_uuid = :app_uuid
+    AND (hr.attachment_name = :schedule_name OR hr.aux_attachment_names @> ARRAY[:schedule_name])
+    AND t.database_name = :database_name
+EOF
+    end
+
+    def shogun_schedule?(s)
+      URI.parse(s.callback_url).host == 'shogun.heroku.com'
+    rescue
+      false
+    end
+
     def schedule_okay?(s)
       dbnames = s.transfers.map { |x| x.from_url }.map { |u| URI.parse(u).path }.uniq
-      if dbnames.count > 1
-        return false
+      if shogun_schedule?(s)
+        dbnames.all? { |dbname| shogun_database_name_valid?(s.group_id, s.name, dbname) }
+      elsif dbnames.count == 1
+        res = Transferatu::ScheduleResolver.new
+        resolved_dbname = URI.parse(res.resolve(s)['from_url']).path
+        dbnames.first == resolved_dbname
+      else
+        false
       end
-      res = Transferatu::ScheduleResolver.new
-      resolved_dbname = URI.parse(res.resolve(s)['from_url']).path
-      dbnames.first == resolved_dbname
     end
 
     def format_exception(e)
