@@ -29,7 +29,9 @@ EOF
 
     def schedule_okay?(s)
       dbnames = s.transfers.map { |x| x.from_url }.map { |u| URI.parse(u).path }.uniq
-      if shogun_schedule?(s)
+      if dbnames.empty?
+        true
+      elsif shogun_schedule?(s)
         dbnames.all? { |dbname| shogun_database_name_valid?(s.group_id, s.name, dbname) }
       elsif dbnames.count == 1
         res = Transferatu::ScheduleResolver.new
