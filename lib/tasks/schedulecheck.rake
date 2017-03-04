@@ -21,6 +21,10 @@ WHERE
 EOF
     end
 
+    def from_database(transfer)
+      URI.parse(transfer.from_url).path[1..-1]
+    end
+
     def shogun_schedule?(s)
       URI.parse(s.callback_url).host == 'shogun.heroku.com'
     rescue
@@ -28,7 +32,7 @@ EOF
     end
 
     def schedule_okay?(s)
-      dbnames = s.transfers.map { |x| x.from_url }.map { |u| URI.parse(u).path }.uniq
+      dbnames = s.transfers.map { |xfer| from_database(xfer) }.uniq
       if dbnames.empty?
         true
       elsif shogun_schedule?(s)
