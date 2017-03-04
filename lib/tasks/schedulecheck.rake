@@ -7,7 +7,7 @@ namespace :schedules do
     SHOGUN_DB = Sequel.connect(ENV['TEMPORARY_SHOGUN_FOLLOWER_URL'])
 
     def shogun_database_name_valid?(app_uuid, schedule_name, database_name)
-      valid = SHOGUN_DB.fetch(<<-EOF).first[:valid]
+      valid = SHOGUN_DB.fetch(<<-EOF, app_uuid: app_uuid, schedule_name: schedule_name, database_name: database_name).first[:valid]
 SELECT
   count(*) > 0 AS valid
 FROM
