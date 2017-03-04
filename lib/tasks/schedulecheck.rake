@@ -41,14 +41,15 @@ WHERE
   p.hostname = :hostname
     AND r.database = :database
 EOF
-        unless app
+        if app
+          apps << app[:app]
+        else
           # if you can't get an app here, it means that schedule has some
           # resource that is not discovered in yobuko.
           # this very likely means that there was some resource transfer
           # happened, so gonna check resource transfer
           need_to_check_resource_transfers = true
         end
-        apps << app[:app]
       end
 
       if need_to_check_resource_transfers
