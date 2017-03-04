@@ -36,7 +36,7 @@ EOF
       if dbnames.empty?
         true
       elsif shogun_schedule?(s)
-        dbnames.all? { |dbname| shogun_database_name_valid?(s.group_id, s.name, dbname) }
+        dbnames.all? { |dbname| shogun_database_name_valid?(s.group.name, s.name, dbname) }
       elsif dbnames.count == 1
         res = Transferatu::ScheduleResolver.new
         resolved_dbname = URI.parse(res.resolve(s)['from_url']).path
