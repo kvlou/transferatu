@@ -98,6 +98,21 @@ EOF
       yobuko_app_uniq_check(s, from_urls)
     end
 
+    def check_only_one_dbname(s)
+      all_dbnames = s.transfers.map { |xfer| from_database(xfer) }
+      dbnames_count = {}
+      all_dbnames.each do |dbname|
+        dbnames_count[dbname] = dbnames_count.fetch(value, 0) + 1
+      end
+
+      if dbnames_count.select { |k, v| v == 1 }.count > 0
+        raise ArgumentError, "There is database name that is only used once among schedules: #{dbnames_count}"
+      end
+
+      # this method is only called for false things, so return false anyways
+      false
+    end
+
     def yobuko_schedule?(s)
       URI.parse(s.callback_url).host == 'yobuko.heroku.com'
     rescue
@@ -112,7 +127,7 @@ EOF
 
     def schedule_okay?(s)
       dbnames = s.transfers.map { |xfer| from_database(xfer) }.uniq
-      if dbnames.empty?
+      result = if dbnames.empty?
         true
       elsif shogun_schedule?(s)
         dbnames.all? { |dbname| shogun_database_name_valid?(s.group.name, s.name, dbname) }
@@ -125,6 +140,10 @@ EOF
       else
         false
       end
+
+      # if result is false, we'll do the check if there is one single database
+      # name shows up among many transfers
+      result || check_only_one_dbname(s)
     end
 
     def format_exception(e)
