@@ -102,7 +102,7 @@ EOF
       all_dbnames = s.transfers.map { |xfer| from_database(xfer) }
       dbnames_count = {}
       all_dbnames.each do |dbname|
-        dbnames_count[dbname] = dbnames_count.fetch(value, 0) + 1
+        dbnames_count[dbname] = dbnames_count.fetch(dbname, 0) + 1
       end
 
       if dbnames_count.select { |k, v| v == 1 }.count > 0
