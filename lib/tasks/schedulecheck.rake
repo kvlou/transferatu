@@ -121,13 +121,13 @@ EOF
     end
 
     def yobuko_check(s)
-      from_urls = s.transfers.map { |x| x.from_url }.uniq.map { |u| URI.parse(u) }
+      from_urls = s.transfers.map { |x| x.from_url }.uniq.compact.map { |u| URI.parse(u) }
 
       yobuko_app_uniq_check(s, from_urls)
     end
 
     def yobuko_shogun_crosscheck(s)
-      dbnames = s.transfers.map { |xfer| from_database(xfer) }.uniq
+      dbnames = s.transfers.map { |xfer| from_database(xfer) }.uniq.compact
       # remove dbnames that are associated with shogun
       dbnames.reject! { |dbname| shogun_database_name_valid?(s.group.name, s.name, dbname) }
       # remove dbnames that have the same app_uuid
@@ -141,7 +141,7 @@ EOF
       # this method checks if there is any database name shows up
       # among many transfers, only one time
       # if so, that database likely does not belong to the schedule
-      all_dbnames = s.transfers.map { |xfer| from_database(xfer) }
+      all_dbnames = s.transfers.map { |xfer| from_database(xfer) }.compact
       dbnames_count = {}
       all_dbnames.each do |dbname|
         dbnames_count[dbname] = dbnames_count.fetch(dbname, 0) + 1
@@ -168,7 +168,7 @@ EOF
     end
 
     def schedule_okay?(s)
-      dbnames = s.transfers.map { |xfer| from_database(xfer) }.uniq
+      dbnames = s.transfers.map { |xfer| from_database(xfer) }.uniq.compact
       result = if dbnames.empty?
         true
       elsif shogun_schedule?(s)
