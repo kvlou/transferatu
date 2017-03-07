@@ -89,8 +89,8 @@ EOF
       end
     end
 
-    def get_all_resource_ids(app_uuid, schedule_name)
-      resources = YOBUKO_DB.fetch(<<-EOF, app_uuid: app_uuid, schedule_name: schedule_name).all
+    def get_all_resource_ids(app_uuid)
+      resources = YOBUKO_DB.fetch(<<-EOF, app_uuid: app_uuid).all
 SELECT
   hr.resource_id
 FROM
@@ -98,7 +98,6 @@ FROM
     INNER JOIN resources r ON hr.resource_id = r.id
 WHERE
   hr.app_uuid = :app_uuid
-    AND (hr.attachment_name = :schedule_name OR hr.aux_attachment_names @> ARRAY[:schedule_name])
 EOF
       resources.map { |r| r[:resource_id] }
     end
@@ -107,7 +106,7 @@ EOF
       # even though you had many resource transfers in the past,
       # due to the way how resource transfer works, it will always have the
       # same resource_id
-      resource_ids = get_all_resource_ids(s.group.name, s.name)
+      resource_ids = get_all_resource_ids(s.group.name)
       rt_dbnames = []
 
       resource_ids.each do |resource_id|
