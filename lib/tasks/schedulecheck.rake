@@ -22,6 +22,19 @@ WHERE
 EOF
     end
 
+    def yobuko_database_name_valid?(app_uuid, schedule_name, database_name)
+      valid = YOBUKO_DB.fetch(<<-EOF, app_uuid: app_uuid, schedule_name: schedule_name, database_name: database_name).first[:valid]
+SELECT
+  count(*) > 0 AS valid
+FROM
+  heroku_resources hr
+    INNER JOIN resources r ON hr.resource_id = r.id
+WHERE
+  hr.app_uuid = :app_uuid
+    AND r.database = :database_name
+EOF
+    end
+
     def from_database(transfer)
       URI.parse(transfer.from_url).path[1..-1]
     end
@@ -98,7 +111,19 @@ EOF
       yobuko_app_uniq_check(s, from_urls)
     end
 
+    def yobuko_shogun_crosscheck(s)
+      dbnames = s.transfers.map { |xfer| from_database(xfer) }.uniq
+      # remove dbnames that are associated with shogun
+      dbnames.reject! { |dbname| shogun_database_name_valid?(s.group.name, s.name, dbname) }
+      # remove dbnames that are associated with yobuko
+      dbnames.reject! { |dbname| yobuko_database_name_valid?(s.group.name, s.name, dbname) }
+      dbnames.empty?
+    end
+
     def check_only_one_dbname(s)
+      # this method checks if there is any database name shows up
+      # among many transfers, only one time
+      # if so, that database likely does not belong to the schedule
       all_dbnames = s.transfers.map { |xfer| from_database(xfer) }
       dbnames_count = {}
       all_dbnames.each do |dbname|
@@ -141,8 +166,10 @@ EOF
         false
       end
 
-      # if result is false, we'll do the check if there is one single database
-      # name shows up among many transfers
+      # if result is false, do crosscheck
+      result = yobuko_shogun_crosscheck(s) unless result
+
+      # if result is still false, check only one dbname as additional info
       result || check_only_one_dbname(s)
     end
 
