@@ -130,17 +130,10 @@ EOF
       dbnames = s.transfers.map { |xfer| from_database(xfer) }.uniq
       # remove dbnames that are associated with shogun
       dbnames.reject! { |dbname| shogun_database_name_valid?(s.group.name, s.name, dbname) }
-      # remove dbnames that are associated with yobuko
-      dbnames.reject! { |dbname| yobuko_database_name_valid?(s.group.name, s.name, dbname) }
-      dbnames.empty?
-    end
-
-    def shogun_uniq_app_check(s)
-      dbnames = s.transfers.map { |xfer| from_database(xfer) }.uniq
-      # remove dbnames that are associated with shogun
-      dbnames.reject! { |dbname| shogun_database_name_valid?(s.group.name, s.name, dbname) }
       # remove dbnames that have the same app_uuid
       dbnames.reject! { |dbname| shogun_same_app_uuid?(s.group.name, dbname) }
+      # remove dbnames that are associated with yobuko
+      dbnames.reject! { |dbname| yobuko_database_name_valid?(s.group.name, s.name, dbname) }
       dbnames.empty?
     end
 
@@ -192,9 +185,6 @@ EOF
 
       # if result is false, do crosscheck
       result = yobuko_shogun_crosscheck(s) unless result
-
-      # if result is false, check if the app is uniq for all dbnames
-      result = shogun_uniq_app_check(s) unless result
 
       # if result is still false, check only one dbname as additional info
       result || check_only_one_dbname(s)
