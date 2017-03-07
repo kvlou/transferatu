@@ -81,14 +81,16 @@ EOF
       end
 
       if need_to_check_resource_transfers
-        yobuko_resource_transfer_check(s, from_urls)
+        # for now, return false here and will check about resource_transfers
+        # later with new way
+        false
       else
         apps.uniq.length == 1
       end
     end
 
-    def get_current_resource_id(app_uuid, schedule_name)
-      resource = YOBUKO_DB.fetch(<<-EOF, app_uuid: app_uuid, schedule_name: schedule_name).first[:resource_id]
+    def get_all_resource_ids(app_uuid, schedule_name)
+      resources = YOBUKO_DB.fetch(<<-EOF, app_uuid: app_uuid, schedule_name: schedule_name).all
 SELECT
   hr.resource_id
 FROM
@@ -97,27 +99,26 @@ FROM
 WHERE
   hr.app_uuid = :app_uuid
     AND (hr.attachment_name = :schedule_name OR hr.aux_attachment_names @> ARRAY[:schedule_name])
-    AND r.state NOT IN ('deprovisioning', 'deprovision_grace_period', 'deprovisioned')
 EOF
+      resources.map { |r| r[:resource_id] }
     end
 
-    def yobuko_resource_transfer_check(s, from_urls)
+    def yobuko_resource_transfer_dbnames(s)
       # even though you had many resource transfers in the past,
       # due to the way how resource transfer works, it will always have the
       # same resource_id
-      resource_id = get_current_resource_id(s.group.name, s.name)
+      resource_ids = get_all_resource_ids(s.group.name, s.name)
+      rt_dbnames = []
 
-      hosts_from_transfers = from_urls.map(&:host).uniq
-      hosts_from_rt = []
-
-      resource_transfers = YOBUKO_DB[:resource_transfers].where(resource_id: resource_id).all
-      resource_transfers.each do |rt|
-        ids = [rt[:source_participant_id], rt[:target_participant_id]]
-        hosts_from_rt << YOBUKO_DB[:participants].where(id: ids).all.map { |p| p[:hostname] }.flatten
+      resource_ids.each do |resource_id|
+        resource_transfers = YOBUKO_DB[:resource_transfers].where(resource_id: resource_id).all
+        resource_transfers.each do |rt|
+          t = Transferatu::Transfer[rt[:transferatu_transfer_id]]
+          rt_dbnames << from_database(t)
+        end
       end
-      hosts_from_rt = hosts_from_rt.flatten.uniq
 
-      (hosts_from_transfers - hosts_from_rt).length == 0
+      rt_dbnames.uniq.compact
     end
 
     def yobuko_check(s)
@@ -134,7 +135,9 @@ EOF
       dbnames.reject! { |dbname| shogun_same_app_uuid?(s.group.name, dbname) }
       # remove dbnames that are associated with yobuko
       dbnames.reject! { |dbname| yobuko_database_name_valid?(s.group.name, s.name, dbname) }
-      dbnames.empty?
+      # get all dbnames from yobuko resource transfers
+      resource_transfer_dbnames = yobuko_resource_transfer_dbnames(s)
+      (dbnames - resource_transfer_dbnames).empty?
     end
 
     def check_only_one_dbname(s)
