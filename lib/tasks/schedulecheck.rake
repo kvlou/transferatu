@@ -89,6 +89,41 @@ EOF
       end
     end
 
+    def yobuko_owner_uniq_check(s, from_urls)
+      owners = []
+      need_to_check_resource_transfers = false
+      from_urls.each do |furl|
+        owner = YOBUKO_DB.fetch(<<-EOF, hostname: furl.host, database: furl.path[1..-1]).first
+SELECT
+  hr.email AS owner
+FROM
+  heroku_resources hr
+    INNER JOIN resources r ON hr.resource_id = r.id
+    INNER JOIN participants p ON r.participant_id = p.id
+WHERE
+  p.hostname = :hostname
+    AND r.database = :database
+EOF
+        if owner
+          owners << owner[:owner]
+        else
+          # if you can't get an app here, it means that schedule has some
+          # resource that is not discovered in yobuko.
+          # this very likely means that there was some resource transfer
+          # happened, so gonna check resource transfer
+          need_to_check_resource_transfers = true
+        end
+      end
+
+      if need_to_check_resource_transfers
+        # for now, return false here and will check about resource_transfers
+        # later with new way
+        false
+      else
+        owners.uniq.length == 1
+      end
+    end
+
     def get_all_resource_ids(app_uuid)
       resources = YOBUKO_DB.fetch(<<-EOF, app_uuid: app_uuid).all
 SELECT
@@ -112,6 +147,9 @@ EOF
       resource_ids.each do |resource_id|
         resource_transfers = YOBUKO_DB[:resource_transfers].where(resource_id: resource_id).all
         resource_transfers.each do |rt|
+          # for some reason, sometimes yobuko has some transfer_id that is not uuid
+          # skip for that case
+          next unless UUID.validate(rt[:transferatu_transfer_id])
           t = Transferatu::Transfer[rt[:transferatu_transfer_id]]
           rt_dbnames << from_database(t)
         end
@@ -123,7 +161,13 @@ EOF
     def yobuko_check(s)
       from_urls = s.transfers.map { |x| x.from_url }.uniq.compact.map { |u| URI.parse(u) }
 
-      yobuko_app_uniq_check(s, from_urls)
+      result = yobuko_app_uniq_check(s, from_urls)
+
+      unless result
+        result = yobuko_owner_uniq_check(s)
+      end
+
+      result
     end
 
     def yobuko_shogun_crosscheck(s)

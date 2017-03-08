@@ -33,6 +33,7 @@ gem "lpxc"
 gem "pgversion"
 gem "platform-api"
 gem "rest-client"
+gem "uuid"
 
 group :development, :test do
   gem "pry-byebug"
