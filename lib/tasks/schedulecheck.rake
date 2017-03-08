@@ -164,7 +164,7 @@ EOF
       result = yobuko_app_uniq_check(s, from_urls)
 
       unless result
-        result = yobuko_owner_uniq_check(s)
+        result = yobuko_owner_uniq_check(s, from_urls)
       end
 
       result
