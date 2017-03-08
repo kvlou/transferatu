@@ -7,8 +7,14 @@ namespace :schedules do
     SHOGUN_DB = Sequel.connect(ENV['TEMPORARY_SHOGUN_FOLLOWER_URL'])
     YOBUKO_DB = Sequel.connect(ENV['YOBUKO_FOLLOWER_URL'])
 
+    class TakenWithOtherAppError < StandardError; end
+
+    def from_database(transfer)
+      URI.parse(transfer.from_url).path[1..-1]
+    end
+
     def shogun_database_name_valid?(app_uuid, schedule_name, database_name)
-      valid = SHOGUN_DB.fetch(<<-EOF, app_uuid: app_uuid, schedule_name: schedule_name, database_name: database_name).first[:valid]
+      SHOGUN_DB.fetch(<<-EOF, app_uuid: app_uuid, schedule_name: schedule_name, database_name: database_name).first[:valid]
 SELECT
   count(*) > 0 AS valid
 FROM
@@ -23,7 +29,7 @@ EOF
     end
 
     def yobuko_database_name_valid?(app_uuid, schedule_name, database_name)
-      valid = YOBUKO_DB.fetch(<<-EOF, app_uuid: app_uuid, schedule_name: schedule_name, database_name: database_name).first[:valid]
+      YOBUKO_DB.fetch(<<-EOF, app_uuid: app_uuid, schedule_name: schedule_name, database_name: database_name).first[:valid]
 SELECT
   count(*) > 0 AS valid
 FROM
@@ -36,7 +42,7 @@ EOF
     end
 
     def shogun_same_app_uuid?(app_uuid, database_name)
-      same_app_uuid = SHOGUN_DB.fetch(<<-EOF, app_uuid: app_uuid, database_name: database_name).first[:same]
+      SHOGUN_DB.fetch(<<-EOF, app_uuid: app_uuid, database_name: database_name).first[:same]
 SELECT
   count(*) > 0 AS same
 FROM
@@ -48,10 +54,6 @@ WHERE
   t.database_name = :database_name
     AND hr.app_uuid = :app_uuid
 EOF
-    end
-
-    def from_database(transfer)
-      URI.parse(transfer.from_url).path[1..-1]
     end
 
     def yobuko_app_uniq_check(s, from_urls)
@@ -124,24 +126,11 @@ EOF
       end
     end
 
-    def get_all_resource_ids(app_uuid)
-      resources = YOBUKO_DB.fetch(<<-EOF, app_uuid: app_uuid).all
-SELECT
-  hr.resource_id
-FROM
-  heroku_resources hr
-    INNER JOIN resources r ON hr.resource_id = r.id
-WHERE
-  hr.app_uuid = :app_uuid
-EOF
-      resources.map { |r| r[:resource_id] }
-    end
-
     def yobuko_resource_transfer_dbnames(s)
       # even though you had many resource transfers in the past,
       # due to the way how resource transfer works, it will always have the
       # same resource_id
-      resource_ids = get_all_resource_ids(s.group.name)
+      resource_ids = YOBUKO_DB[:heroku_resources].where(app_uuid: s.group.name).all.map { |hr| hr[:resource_id] }
       rt_dbnames = []
 
       resource_ids.each do |resource_id|
@@ -184,6 +173,7 @@ EOF
     end
 
     def check_only_one_dbname(s)
+      # **not used at the moment**
       # this method checks if there is any database name shows up
       # among many transfers, only one time
       # if so, that database likely does not belong to the schedule
@@ -201,6 +191,89 @@ EOF
       false
     end
 
+    def get_current_heroku_resource_info(s)
+      app_uuid = s.group.name
+      schedule_name = s.name
+      # heroku_resources table in yobuko has the info like app (app name), email (owner email)
+      YOBUKO_DB.fetch(<<-EOF, app_uuid: app_uuid, schedule_name: schedule_name).first
+SELECT
+  hr.*
+FROM
+  heroku_resources hr
+    INNER JOIN resources r ON hr.resource_id = r.id
+WHERE
+  hr.app_uuid = :app_uuid
+    AND (hr.attachment_name = :schedule_name OR hr.aux_attachment_names @> ARRAY[:schedule_name])
+EOF
+    end
+
+    def get_heroku_resource_from_url(from_url)
+      hostname = from_url.host
+      database = from_url.path[1..-1]
+
+      YOBUKO_DB.fetch(<<-EOF, hostname: hostname, database: database).first
+SELECT
+  hr.*
+FROM
+  heroku_resources hr
+    INNER JOIN resources r ON hr.resource_id = r.id
+    INNER JOIN participants p ON r.participant_id = p.id
+WHERE
+  p.hostname = :hostname
+    AND r.database = :database
+EOF
+    end
+
+    def check_affected(s)
+      # this method checks the current schedule's app name and owner,
+      # compares with the db that was taken a backup only one time among
+      # all transfers.
+
+      # only checks yobuko for now
+      return false if shogun_schedule?(s)
+
+      heroku_resource = get_current_heroku_resource_info(s)
+      app_name = heroku_resource[:app]
+      owner_email = heroku_resource[:email]
+
+      all_dbnames = s.transfers.map { |xfer| from_database(xfer) }.compact
+      dbnames_count = {}
+      all_dbnames.each do |dbname|
+        dbnames_count[dbname] = dbnames_count.fetch(dbname, 0) + 1
+      end
+
+      errors = []
+      dbnames_count.select! { |k, v| v == 1 }
+
+      unless dbnames_count.empty?
+        single_db_transfers = s.transfers.select { |t| dbnames_count.keys.include? from_database(t) }
+
+        single_db_transfers.each do |transfer|
+          from_url = URI.parse(transfer.from_url)
+          hr = YOBUKO_DB[:heroku_resources].where(resource_url: from_url.to_s).first
+          hr ||= get_heroku_resource_from_url(from_url)
+          if hr
+            # cross check with the current heroku resource
+            unless app_name == hr[:app] || owner_email == hr[:email]
+              # nothing is matching to the current resource, it is affected by the issue
+              errors << "The transfer #{transfer.uuid} is associated with #{hr[:app]} (#{hr[:email]}), whereas the schedule is with #{app_name} (#{owner_email})."
+            end
+          else
+            # if you can't find hr, that means it's either shogun db,
+            # or the db that was moved by resource transfer
+            raise ArgumentError, "Unable to find the database in yobuko: #{from_url.host}:#{from_url.port}#{from_url.path}"
+          end
+        end
+      end
+
+      if errors.empty?
+        # mark as false for now
+        false
+      else
+        raise TakenWithOtherAppError, errors.join("\n")
+      end
+    end
+
     def yobuko_schedule?(s)
       URI.parse(s.callback_url).host == 'yobuko.heroku.com'
     rescue
@@ -216,28 +289,32 @@ EOF
     def schedule_okay?(s)
       dbnames = s.transfers.map { |xfer| from_database(xfer) }.uniq.compact
       result = if dbnames.empty?
-        true
-      elsif shogun_schedule?(s)
-        dbnames.all? { |dbname| shogun_database_name_valid?(s.group.name, s.name, dbname) }
-      elsif yobuko_schedule?(s)
-        yobuko_check(s)
-      elsif dbnames.count == 1
-        res = Transferatu::ScheduleResolver.new
-        resolved_dbname = URI.parse(res.resolve(s)['from_url']).path
-        dbnames.first == resolved_dbname
-      else
-        false
-      end
+                 true
+               elsif shogun_schedule?(s)
+                 dbnames.all? { |dbname| shogun_database_name_valid?(s.group.name, s.name, dbname) }
+               elsif yobuko_schedule?(s)
+                 yobuko_check(s)
+               elsif dbnames.count == 1
+                 res = Transferatu::ScheduleResolver.new
+                 resolved_dbname = URI.parse(res.resolve(s)['from_url']).path
+                 dbnames.first == resolved_dbname
+               else
+                 false
+               end
 
       # if result is false, do crosscheck
       result = yobuko_shogun_crosscheck(s) unless result
 
       # if result is still false, check only one dbname as additional info
-      result || check_only_one_dbname(s)
+      result || check_affected(s)
     end
 
     def format_exception(e)
-      e.class.name + ": " + e.message + "\n" + e.backtrace.join("\n")
+      if e.class == TakenWithOtherAppError
+        e.class.name + ": " + e.message
+      else
+        e.class.name + ": " + e.message + "\n" + e.backtrace.join("\n")
+      end
     end
 
     def verify_schedules(schedules)
