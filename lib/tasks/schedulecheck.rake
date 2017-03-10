@@ -329,7 +329,9 @@ EOF
     end
 
     loop do
-      next_batch = Transferatu::ScheduleCheck.unverified.all
+      # we've patched at 2017-03-02 19:59 UTC, so it's safe to assume that
+      # any schedules that are created after 2017-03-03 are unaffected by this
+      next_batch = Transferatu::ScheduleCheck.unverified(by: Time.new(2017, 3, 3)).all
       break if next_batch.empty?
 
       verify_schedules(next_batch)
