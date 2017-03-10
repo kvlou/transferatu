@@ -267,8 +267,8 @@ EOF
             # if you can't find hr, that means it's either shogun db,
             # or the db that was moved by resource transfer
             # let's not raise error here yet, and add some message for now
-            hr_not_found << "The transfer #{transfer.uuid} is associated with #{hr[:app]} (#{hr[:email]}), \
-            whereas the schedule is not associated with it (but wasn't able to find in yobuko: \
+            hr_not_found << "The transfer #{transfer.uuid} is likely not associated with \
+            the schedule, the transfer's app is not found in yobuko: \
             #{from_url.host}:#{from_url.port}#{from_url.path}"
           end
         end
