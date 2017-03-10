@@ -226,8 +226,8 @@ EOF
 
     def check_affected(s)
       # this method checks the current schedule's app name and owner,
-      # compares with the db that was taken a backup only one time among
-      # all transfers.
+      # compares with the db that was taken a backup only less than
+      # three times among all transfers.
 
       # only checks yobuko for now
       return false if shogun_schedule?(s)
@@ -246,7 +246,8 @@ EOF
       end
 
       errors = []
-      dbnames_count.select! { |k, v| v == 1 }
+      # check things less than 3 times
+      dbnames_count.select! { |k, v| v <= 3 }
 
       unless dbnames_count.empty?
         single_db_transfers = s.transfers.select { |t| dbnames_count.keys.include? from_database(t) }
