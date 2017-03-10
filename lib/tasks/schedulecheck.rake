@@ -233,6 +233,9 @@ EOF
       return false if shogun_schedule?(s)
 
       heroku_resource = get_current_heroku_resource_info(s)
+      # it's possible that you can't find heroku_resource, especially with deleted schedules
+      # just raise an error so that it can be checked manually
+      raise ArgumentError, "Couldn't find heroku_resouce of this schedule. Please check manually" unless heroku_resource
       app_name = heroku_resource[:app]
       owner_email = heroku_resource[:email]
 
@@ -248,6 +251,7 @@ EOF
       unless dbnames_count.empty?
         single_db_transfers = s.transfers.select { |t| dbnames_count.keys.include? from_database(t) }
 
+        hr_not_found = []
         single_db_transfers.each do |transfer|
           from_url = URI.parse(transfer.from_url)
           hr = YOBUKO_DB[:heroku_resources].where(resource_url: from_url.to_s).first
@@ -256,12 +260,30 @@ EOF
             # cross check with the current heroku resource
             unless app_name == hr[:app] || owner_email == hr[:email]
               # nothing is matching to the current resource, it is affected by the issue
-              errors << "The transfer #{transfer.uuid} is associated with #{hr[:app]} (#{hr[:email]}), whereas the schedule is with #{app_name} (#{owner_email})."
+              errors << "The transfer #{transfer.uuid} is associated with #{hr[:app]} (#{hr[:email]}), \
+              whereas the schedule is with #{app_name} (#{owner_email})."
             end
           else
             # if you can't find hr, that means it's either shogun db,
             # or the db that was moved by resource transfer
-            raise ArgumentError, "Unable to find the database in yobuko: #{from_url.host}:#{from_url.port}#{from_url.path}"
+            # let's not raise error here yet, and add some message for now
+            hr_not_found << "The transfer #{transfer.uuid} is associated with #{hr[:app]} (#{hr[:email]}), \
+            whereas the schedule is not associated with it (but wasn't able to find in yobuko: \
+            #{from_url.host}:#{from_url.port}#{from_url.path}"
+          end
+        end
+
+        unless hr_not_found.empty?
+          if errors.empty?
+            # this means that we weren't able to find the associated heroku_resource
+            # for any of single_db_transfers, let's now raise error
+            raise ArgumentError, hr_not_found.join("\n")
+          else
+            # this means, this schedule had several single_db_transfers
+            # and more than one of them is associated with other apps.
+            # let's just assume that the one that wasn't able to find
+            # heroku_resource as affected as well
+            errors + hr_not_found
           end
         end
       end
