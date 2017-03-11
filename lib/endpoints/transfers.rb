@@ -40,21 +40,25 @@ module Transferatu::Endpoints
           @group.update(log_input_url: log_input_url)
         end
 
-        transfer = Transferatu::Mediators::Transfers::Creator
-          .run(group: @group,
-               from_type: data["from_type"],
-               from_url: data["from_url"],
-               from_name: data["from_name"],
-               to_type: data["to_type"],
-               to_url: data["to_url"],
-               to_name: data["to_name"],
-               from_bastion_host: data["from_bastion_host"],
-               from_bastion_key: data["from_bastion_key"],
-               to_bastion_host: data["to_bastion_host"],
-               to_bastion_key: data["to_bastion_key"],
-               options: data["options"] || {},
-               num_keep: data["num_keep"])
-        respond serialize(transfer), status: 201
+        begin
+          transfer = Transferatu::Mediators::Transfers::Creator
+            .run(group: @group,
+                from_type: data["from_type"],
+                from_url: data["from_url"],
+                from_name: data["from_name"],
+                to_type: data["to_type"],
+                to_url: data["to_url"],
+                to_name: data["to_name"],
+                from_bastion_host: data["from_bastion_host"],
+                from_bastion_key: data["from_bastion_key"],
+                to_bastion_host: data["to_bastion_host"],
+                to_bastion_key: data["to_bastion_key"],
+                options: data["options"] || {},
+                num_keep: data["num_keep"])
+          respond serialize(transfer), status: 201
+        rescue Transferatu::Mediators::Transfers::InvalidTransferError => e
+          raise Pliny::Errors::UnprocessableEntity, e.message
+        end
       end
 
       get "/:id" do

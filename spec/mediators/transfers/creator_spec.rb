@@ -163,6 +163,18 @@ module Transferatu
         t = creator.call
         expect(t).to be_instance_of(Transferatu::Transfer)
       end
+
+      it "rejects a new restore with invalid url" do
+        from_url = "https://test.com\xE2\x80\xA6\/backup.dump"
+        creator = Mediators::Transfers::Creator.new(schedule: schedule,
+                                                    group: group,
+                                                    from_type: 'gof3r',
+                                                    from_url: from_url,
+                                                    to_type: 'pg_restore',
+                                                    to_url: to_url,
+                                                    options: opts)
+        expect { creator.call }.to raise_error(Mediators::Transfers::InvalidTransferError)
+      end
     end
   end
 end
