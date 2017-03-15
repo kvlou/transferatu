@@ -6,7 +6,6 @@ module Transferatu
     # returns 404 or 410, return nil.
     def resolve(schedule)
       endpoint = resource(schedule.callback_url,
-                          schedule.group.user.name,
                           schedule.group.user.callback_password)
       result = begin
                  endpoint.get
@@ -18,9 +17,9 @@ module Transferatu
 
     private
 
-    def resource(callback_url, user, password)
+    def resource(callback_url, password)
       RestClient::Resource.new(callback_url,
-                               user: user,
+                               user: '',
                                password: password,
                                headers: { content_type: 'application/octet-stream',
                                          accept: 'application/octet-stream' })

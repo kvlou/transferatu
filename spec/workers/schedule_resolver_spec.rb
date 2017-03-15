@@ -19,7 +19,7 @@ module Transferatu
       before do
         expect(RestClient::Resource).to receive(:new)
           .with(schedule.callback_url,
-                user: schedule.group.user.name,
+                user: '',
                 password: schedule.group.user.callback_password,
                 headers: { content_type: 'application/octet-stream',
                           accept: 'application/octet-stream' })
