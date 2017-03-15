@@ -30,5 +30,14 @@ heroku config:set TRANSFERATU_URL=https://$transferatu.herokai.com \
   TRANSFERATU_PASSWORD=$PASSWORD \
   TRANSFERATU_CALLBACK_PASSWORD=$CALLBACK -a shogun-$DEPLOY
 
+# only run this when yobuko-$DEPLOY app exists
+if heroku info -a yobuko-$DEPLOY &>/dev/null;
+then
+  heroku config:set TRANSFERATU_URL=https://$transferatu.herokai.com \
+    TRANSFERATU_USER=$USERNAME \
+    TRANSFERATU_PASSWORD=$PASSWORD \
+    TRANSFERATU_CALLBACK_PASSWORD=$CALLBACK -a yobuko-$DEPLOY
+fi
+
 heroku config:set WORKER_COUNT=4 WORKER_SIZE=Private-M -a $transferatu
 heroku addons:create rollbar:hobby -a $transferatu
