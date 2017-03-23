@@ -23,7 +23,7 @@ gem "net-ssh"
 gem "net-ssh-gateway"
 
 # additional gems (not from template)
-gem "attr_secure", git: "https://github.com/deafbybeheading/attr_secure", branch: 'fernet-2.0-support-empty-values'
+gem "attr_secure", git: "https://github.com/uhoh-itsmaciek/attr_secure", branch: 'fernet-2.0-support-empty-values'
 gem "aws-sdk-core"
 gem "bcrypt"
 gem "clockwork"
