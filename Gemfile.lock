@@ -1,5 +1,5 @@
 GIT
-  remote: https://github.com/deafbybeheading/attr_secure
+  remote: https://github.com/uhoh-itsmaciek/attr_secure
   revision: 09366b23ea1a8a9845feff2ba8164136eb984596
   branch: fernet-2.0-support-empty-values
   specs:
@@ -254,4 +254,4 @@ RUBY VERSION
    ruby 2.2.2p95
 
 BUNDLED WITH
-   1.14.5
+   1.14.6
