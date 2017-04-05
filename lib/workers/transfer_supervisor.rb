@@ -5,7 +5,16 @@ module Transferatu
       status = Transferatu::WorkerStatus.create
       worker = TransferWorker.new(status)
       loop do
-        if AppStatus.updated_at > started_at
+        # Currently we're updating updated_at every 4 hours, so this is going
+        # to be "true" and worker one-off dyno will exit pretty much every 4
+        # hours. This 4 hours is to prevent any backups get killed in the
+        # middle (e.g. if the backup started running the 23 hours since the
+        # dyno was booted and takes more than 1 hour, likely it'll get killed
+        # in the middle due to the 24 hours dyno life cycle).
+        # To avoid shutting down one-off workers at the same time, add
+        # some jitters here. With this, worker one-off dyno will exit between
+        # 4 and 6 hours.
+        if AppStatus.updated_at - (2.hours * rand) > started_at
           Pliny.log(app: Config.heroku_app_name,
                     method: 'TransferSupervisor.run', step: 'stale-worker-exiting')
           break
