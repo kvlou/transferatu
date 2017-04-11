@@ -30,10 +30,17 @@ $ ./bin/staging-setup $DEPLOY
 
 #### Setup Domain and Cert
 
-After running staging setup script,
-[Create a Foundation team GitHub issue](https://github.com/heroku/foundation/issues/new)
-with the title "Add transferatu-$deploy.herokai.com cert/domain for transferatu-$deploy app"
-and add a label "interrupt".
+After running staging setup script, create a PR on the [Foundation Team's Github Repo](https://github.com/heroku/foundation) that adds your domain to
+[letsencrypt-dogwood](https://github.com/heroku/foundation/blob/master/letsencrypt-dogwood/domains.yml)
+and add the label "interrupt".
+
+Add your config in the following format.
+
+```
+dns:
+  - transferatu-$deploy.herokai.com
+  app: transferatu-$deploy
+```
 
 #### Continued Setup
 
