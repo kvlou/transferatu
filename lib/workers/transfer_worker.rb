@@ -67,6 +67,9 @@ module Transferatu
         end
       end
 
+      # Do not run the transfer if it's already canceled at this point
+      return if transfer.canceled?
+
       begin
         Rollbar.scoped(transfer_id: xfer_id) do
           result = runner.run_transfer

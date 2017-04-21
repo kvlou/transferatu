@@ -169,9 +169,6 @@ module Transferatu
   # A source that runs pg_dump
   class PGDumpSource
     include Commandable
-    extend Forwardable
-
-    def_delegators :@future, :cancel
 
     def initialize(url, opts: {}, logger:, root:)
       uri = URI.parse(url)
@@ -208,14 +205,15 @@ module Transferatu
     def alive?
       @future && @future.alive?
     end
+
+    def cancel
+      @future && @future.cancel
+    end
   end
 
   # A Sink that uploads to S3
   class Gof3rSink
     include Commandable
-    extend Forwardable
-
-    def_delegators :@future, :cancel
 
     def initialize(url, opts: {}, logger:)
       # assumes https://bucket.as3.amazonaws.com/key/path URIs
@@ -253,6 +251,10 @@ module Transferatu
       @future.alive?
     end
 
+    def cancel
+      @future && @future.cancel
+    end
+
     def warnings
       0
     end
@@ -261,9 +263,6 @@ module Transferatu
   # A Sink that restores a custom-format Postgres dump into a database
   class PGRestoreSink
     include Commandable
-    extend Forwardable
-
-    def_delegators :@future, :cancel
 
     def initialize(url, opts: {}, logger:, root:)
       uri = URI.parse(url)
@@ -346,6 +345,10 @@ module Transferatu
       @future.alive?
     end
 
+    def cancel
+      @future && @future.cancel
+    end
+
     def warnings
       @warnings
     end
@@ -354,9 +357,6 @@ module Transferatu
   # A source that runs Gof3r to fetch from an S3 URL we have access to
   class Gof3rSource
     include Commandable
-    extend Forwardable
-
-    def_delegators :@future, :cancel
 
     def initialize(url, opts: {}, logger:)
       # assumes https://bucket.as3.amazonaws.com/key/path URIs
@@ -390,14 +390,15 @@ module Transferatu
     def alive?
       @future.alive?
     end
+
+    def cancel
+      @future && @future.cancel
+    end
   end
 
   # A source that runs htcat to fetch from any URL
   class HtcatSource
     include Commandable
-    extend Forwardable
-
-    def_delegators :@future, :cancel
 
     def initialize(url, opts: {}, logger:)
       # htcat $url
@@ -425,6 +426,10 @@ module Transferatu
 
     def alive?
       @future && @future.alive?
+    end
+
+    def cancel
+      @future && @future.cancel
     end
 
     def get_target_url_from_possible_redirect(url)
