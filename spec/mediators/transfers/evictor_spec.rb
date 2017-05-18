@@ -64,4 +64,18 @@ describe Transferatu::Mediators::Transfers::Evictor do
     end
     expect(scheduled_xfer.deleted?).to be false
   end
+
+  it "does not run evictor if the current transfer is not a manual backup" do
+    copy_xfer = create(:transfer, group: group, from_name: dbname,
+                       to_type: 'pg_restore')
+    expect(copy_xfer).not_to receive(:group)
+    Transferatu::Mediators::Transfers::Evictor.run(transfer: xfer)
+
+    schedule = create(:schedule)
+    scheduled_xfer = create(:transfer, group: group,
+                            from_name: dbname, to_type: 'gof3r',
+                            succeeded: true, schedule: schedule)
+    expect(scheduled_xfer).not_to receive(:group)
+    Transferatu::Mediators::Transfers::Evictor.run(transfer: xfer)
+  end
 end

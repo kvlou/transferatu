@@ -87,9 +87,7 @@ module Transferatu
 
       progress_thr.join
 
-      # TODO: fix this tomorrow
-      # This was disabled because eviction can evict manual backups
-      # Transferatu::Mediators::Transfers::Evictor.run(transfer: transfer)
+      Transferatu::Mediators::Transfers::Evictor.run(transfer: transfer)
     ensure
       @status.update(transfer: nil)
     end
