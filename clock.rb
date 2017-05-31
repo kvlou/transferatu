@@ -25,12 +25,12 @@ module Clockwork
     Transferatu::AppStatus.mark_update
   end
 
-  every(1.hour, "run-purger") do
+  every(30.minute, "run-purger") do
     # TODO: move out to separate worker if this is not keeping up
     started_at = Time.now
     succeeded = 0
     failed = 0
-    Transferatu::Transfer.purgeable.limit(1000).all.each do |xfer|
+    Transferatu::Transfer.purgeable.limit(5000).all.each do |xfer|
       begin
         Transferatu::Mediators::Transfers::Purger.run(transfer: xfer)
         succeeded += 1
