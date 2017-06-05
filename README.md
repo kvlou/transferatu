@@ -30,9 +30,7 @@ $ ./bin/staging-setup $DEPLOY
 
 #### Setup Domain and Cert
 
-After running staging setup script, create a PR on the [Foundation Team's Github Repo](https://github.com/heroku/foundation) that adds your domain to
-[letsencrypt-dogwood](https://github.com/heroku/foundation/blob/master/letsencrypt-dogwood/domains.yml)
-and add the label "interrupt".
+After running staging setup script, create a ticket in the Interrupts column of the [SRTools Team's Trello](https://trello.com/b/rvSemIgP/sr-tools) with a PR that adds your domain to [letsencrypt-dogwood](https://github.com/heroku/foundation/blob/master/letsencrypt-dogwood/domains.yml).
 
 Add your config in the following format.
 
