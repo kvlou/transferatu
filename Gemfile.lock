@@ -137,7 +137,7 @@ GEM
       http-cookie (>= 1.0.2, < 2.0)
       mime-types (>= 1.16, < 4.0)
       netrc (~> 0.8)
-    rollbar (2.14.0)
+    rollbar (2.14.1)
       multi_json
     rspec (3.1.0)
       rspec-core (~> 3.1.0)
@@ -254,4 +254,4 @@ RUBY VERSION
    ruby 2.2.2p95
 
 BUNDLED WITH
-   1.14.6
+   1.15.1
