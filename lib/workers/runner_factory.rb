@@ -196,8 +196,12 @@ module Transferatu
 
       @logger.call "waiting for pg_dump to complete"
       result = @future.wait
-      @logger.call "pg_dump done"
-      @logger.call("exit status details: #{result.inspect}", level: :internal)
+      @logger.call("pg_dump exit status details: #{result.inspect}", level: :internal)
+      if result.success?
+        @logger.call "pg_dump finished successfully"
+      else
+        @logger.call "pg_dump finished with errors"
+      end
 
       @succeeded = result.success? == true
     end
@@ -241,8 +245,12 @@ module Transferatu
 
       @logger.call "waiting for upload to complete"
       result = @future.wait
-      @logger.call "upload done"
-      @logger.call("exit status details: #{result.inspect}", level: :internal)
+      @logger.call("upload exit status details: #{result.inspect}", level: :internal)
+      if result.success?
+        @logger.call "upload finished successfully"
+      else
+        @logger.call "upload finished with errors"
+      end
 
       @succeeded = result.success? == true
     end
@@ -317,7 +325,6 @@ module Transferatu
 
       @logger.call "waiting for restore to complete"
       result = @future.wait
-      @logger.call "restore done"
 
       @complete = true
       @warnings = 0
@@ -336,6 +343,13 @@ module Transferatu
         end
       else
         @succeeded = false
+      end
+
+      if @succeeded
+        result = @warnings == 0 ? "successfully" : "with #{@warnings} warnings"
+        @logger.call "pg_restored finished #{result}"
+      else
+        @logger.call "pg_restore finished with errors"
       end
 
       @succeeded
@@ -383,7 +397,12 @@ module Transferatu
 
       @logger.call "waiting for download to complete"
       result = @future.wait
-      @logger.call "download done"
+      if result.success?
+        @logger.call "download finished successfully"
+      else
+        @logger.call "download finished with errors"
+      end
+
       @succeeded = result.success? == true
     end
 
@@ -420,7 +439,14 @@ module Transferatu
 
       @logger.call "waiting for download to complete"
       @result = @future.wait
-      @logger.call "download done"
+      if @result.success?
+        @logger.call "download finished successfully"
+      else
+        @logger.call "download finished with errors"
+        # special helpful error message for popular mistake
+        @logger.call "please check the source URL and ensure it is publicly accessible"
+      end
+
       @succeeded = @result.success? == true
     end
 
